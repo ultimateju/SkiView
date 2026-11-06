@@ -602,17 +602,21 @@ async function getMe(){
 /* Ränge: Skigebiete der Alpen, aufsteigend nach Pistenkilometern (Betreiberangaben, gerundet, Quellen weichen voneinander ab).
    p = nötige Punkte, n = nötige Einträge (nur beim ersten Rang). Werte lassen sich hier anpassen. */
 const RANKS=[
- {name:"Steinplatte-Winklmoosalm",km:42,p:12,n:5},
- {name:"Oberstdorf/Kleinwalsertal",km:130,p:30},
- {name:"Ischgl-Samnaun",km:238,p:60},
- {name:"Saalbach-Hinterglemm",km:270,p:100},
- {name:"SkiWelt Wilder Kaiser-Brixental",km:284,p:150},
- {name:"Ski Arlberg",km:305,p:215},
- {name:"Les 4 Vallées",km:412,p:295},
- {name:"Les Portes du Soleil",km:580,p:395},
- {name:"Les 3 Vallées",km:600,p:515},
- {name:"Ski amadé",km:760,p:660},
- {name:"Dolomiti Superski",km:1200,p:830}
+ {name:"Collenberg Halver",km:0,2,p:30,n:5},
+ {name:"Olpe Fahlenscheid",km:1,25,p:100},
+ {name:"Wilde Wiese",km:6,p:200},
+ {name:"Willingen",km:17,p:300},
+ {name:"Skikarusell Winterberg",km:27,5,p:500},
+ {name:"Oberstdorf/Kleinwalsertal",km:130,p:750},
+ {name:"Ischgl-Samnaun",km:238,p:1000},
+ {name:"Saalbach-Hinterglemm",km:270,p:1250},
+ {name:"SkiWelt Wilder Kaiser-Brixental",km:284,p:1750},
+ {name:"Ski Arlberg",km:305,p:2225},
+ {name:"Les 4 Vallées",km:412,p:2900},
+ {name:"Les Portes du Soleil",km:580,p:3750},
+ {name:"Les 3 Vallées",km:600,p:4500},
+ {name:"Ski amadé",km:760,p:6000},
+ {name:"Dolomiti Superski",km:1200,p:7500}
 ];
 const rankOf=(p,n)=>{let r=-1;for(let i=0;i<RANKS.length;i++){if(p>=RANKS[i].p&&n>=(RANKS[i].n||0))r=i;else break}return r};
 
