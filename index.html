@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SkiView</title>
+<meta name="theme-color" content="#3a1772">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2064%2064%22%3E%3Cdefs%3E%3CclipPath%20id=%22fv%22%3E%3Cpath%20d=%22M17%2026Q32%2013%2047%2026Q32%2039%2017%2026Z%22/%3E%3C/clipPath%3E%3C/defs%3E%3Cellipse%20cx=%2232%22%20cy=%2259%22%20rx=%2217%22%20ry=%223.5%22%20fill=%22%237d80da%22/%3E%3Cpath%20d=%22M26%2057L28.5%2044h7L38%2057z%22%20fill=%22%23b0a3d4%22/%3E%3Ccircle%20cx=%2232%22%20cy=%2226%22%20r=%2222%22%20fill=%22%23b0a3d4%22/%3E%3Ccircle%20cx=%2232%22%20cy=%2226%22%20r=%2217%22%20fill=%22%233a1772%22/%3E%3Cpath%20d=%22M17%2026Q32%2013%2047%2026Q32%2039%2017%2026Z%22%20fill=%22%23fff%22/%3E%3Cg%20clip-path=%22url%28%23fv%29%22%3E%3Ccircle%20cx=%2232%22%20cy=%2226%22%20r=%227.5%22%20fill=%22%23f2cd5d%22/%3E%3Ccircle%20cx=%2232%22%20cy=%2226%22%20r=%223.8%22%20fill=%22%233a1772%22/%3E%3C/g%3E%3Ccircle%20cx=%2229.8%22%20cy=%2223.6%22%20r=%221.5%22%20fill=%22%23fff%22/%3E%3Ccircle%20cx=%2250%22%20cy=%229%22%20r=%222.6%22%20fill=%22%23f2cd5d%22/%3E%3C/svg%3E">
+<style>
+:root{
+ /* Palette: #65655e #7d80da #b0a3d4 #3a1772 #f2cd5d */
+ --bg:#f3f1f9;--panel:#fff;--ink:#2a1a47;--mute:#65655e;--line:#d9d3ea;--sel:#ebe7f5;
+ --accent:#3a1772;--accent-ink:#fff;--mid:#7d80da;--hi:#f2cd5d;
+ --head:#3a1772;--head-mute:#b0a3d4}
+@media (prefers-color-scheme:dark){:root{--bg:#1b1330;--panel:#251b40;--ink:#efeaf9;--mute:#b0a3d4;--line:#3b2f5e;--sel:#33285a;--accent:#f2cd5d;--accent-ink:#3a1772;--head:#2b1259}}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 "Avenir Next","Segoe UI",system-ui,sans-serif;display:flex;flex-direction:column}
+header{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:center;padding:12px 16px;background:var(--head);color:#fff;border-bottom:3px solid var(--hi)}
+header button{background:transparent;color:#fff;border-color:rgba(255,255,255,.4)}
+header button:hover{border-color:var(--hi)}
+header button:focus-visible{outline-color:var(--hi)}
+header h1{font-size:20px;margin:0;flex:1;font-weight:800;color:var(--hi);letter-spacing:.5px}
+button,select,input,textarea{font:inherit;color:inherit}
+button{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 12px;cursor:pointer}
+button:hover{border-color:var(--mid)}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+main{flex:1;display:grid;grid-template-columns:260px 1fr;min-height:0}
+aside{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.filters{display:flex;gap:8px;padding:10px}
+.filters input,.filters select{flex:1;min-width:0;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg)}
+#list{list-style:none;margin:0;padding:0;overflow:auto;flex:1}
+#list li button{width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:10px 14px;display:flex;justify-content:space-between;gap:8px}
+#list li button[aria-current=true]{background:var(--sel);box-shadow:inset 4px 0 var(--hi)}
+#list small{color:var(--mute)}
+section{overflow:auto;padding:16px;min-width:0}
+.top{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px;margin-bottom:12px}
+.top h2{margin:0;font-size:24px}
+.top span{color:var(--mute)}
+.tabs{display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--line)}
+.tabs button{border:0;border-bottom:3px solid transparent;border-radius:0;background:none;padding:8px 14px}
+.tabs button[aria-selected=true]{border-bottom-color:var(--mid);font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+.cam{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.cam iframe{display:block;width:100%;aspect-ratio:16/10;border:0;background:#000}
+.cam div{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px}
+.cam a,.link{color:var(--accent);text-decoration:none;font-weight:600}
+.cam a:hover,.link:hover{text-decoration:underline}
+.map iframe{width:100%;height:68vh;min-height:360px;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+.now{display:flex;flex-wrap:wrap;gap:24px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:14px}
+.now .t{font-size:44px;font-weight:700;line-height:1}
+.days{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.day{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px}
+.day b{display:block;margin-bottom:4px}
+.day p{margin:2px 0;color:var(--mute);font-size:13px}
+.empty,.err{background:var(--panel);border:1px dashed var(--line);border-radius:8px;padding:20px;color:var(--mute)}
+dialog{width:min(720px,94vw);background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:10px}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+textarea{width:100%;height:50vh;font:13px/1.45 ui-monospace,Menlo,Consolas,monospace;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px}
+.row{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
+@media (max-width:760px){main{grid-template-columns:1fr;grid-template-rows:auto 1fr}aside{border-right:0;border-bottom:1px solid var(--line);max-height:34vh}.grid{grid-template-columns:1fr}}
+table{width:100%;border-collapse:collapse}th,td{padding:6px 10px;border-bottom:1px solid var(--line);text-align:left}tr.me{background:var(--sel)}
+.cm{height:68vh;min-height:360px;border:1px solid var(--line);border-radius:8px;z-index:0}
+#gm .cm{height:calc(100vh - 190px)}
+.cam p.meta{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0;padding:0 12px 10px;color:var(--mute);font-size:13px}
+.cam p.meta button{padding:2px 8px;font-size:12px}
+dialog input{padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);width:100%}
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+<header>
+  <h1 style="display:flex;align-items:center;gap:10px"><svg viewBox="0 0 64 64" width="40" height="40" role="img" aria-label="SkiView-Logo: Webcam mit Auge"><defs><clipPath id="ev"><path d="M17 26Q32 13 47 26Q32 39 17 26Z"/></clipPath></defs><ellipse cx="32" cy="59" rx="17" ry="3.5" fill="#7d80da"/><path d="M26 57L28.5 44h7L38 57z" fill="#b0a3d4"/><circle cx="32" cy="26" r="22" fill="#b0a3d4"/><circle cx="32" cy="26" r="17" fill="#3a1772"/><path d="M17 26Q32 13 47 26Q32 39 17 26Z" fill="#fff"/><g clip-path="url(#ev)"><circle cx="32" cy="26" r="7.5" fill="#f2cd5d"/><circle cx="32" cy="26" r="3.8" fill="#3a1772"/></g><circle cx="29.8" cy="23.6" r="1.5" fill="#fff"/><circle cx="50" cy="9" r="2.6" fill="#f2cd5d"/></svg>SkiView</h1>
+  <span id="sync-st" style="font-size:12px;color:var(--head-mute)">Sync: aus</span>
+  <span id="me-st" style="font-size:12px;color:var(--hi)"></span>
+  <button id="rank-btn">Rangliste</button>
+  <button id="codes-btn" hidden>Einladungscodes</button>
+  <button id="sync-btn">Konto</button>
+  <button id="gmap-btn">Webcam-Karte</button>
+  <button id="fav-ov">Favoriten-Übersicht</button>
+  <button id="add-area">Skigebiet hinzufügen</button>
+  <button id="edit">Backup (JSON)</button>
+</header>
+<main>
+  <aside>
+    <div class="filters">
+      <input id="q" type="search" placeholder="Suchen" aria-label="Skigebiet suchen">
+      <select id="land" aria-label="Land filtern"></select>
+    </div>
+    <label style="padding:0 12px 8px;display:block;font-size:13px"><input type="checkbox" id="fav"> Nur Favoriten</label>
+    <ul id="list"></ul>
+  </aside>
+  <section id="view"></section>
+</main>
+
+<dialog id="sdlg">
+  <h3 style="margin-top:0">Konto</h3>
+  <div class="tabs" style="margin-bottom:10px"><button id="s_tab_in" role="tab" aria-selected="true">Anmelden</button><button id="s_tab_up" role="tab" aria-selected="false">Registrieren</button></div>
+  <div style="display:grid;gap:8px">
+    <div id="s_cfg" style="display:grid;gap:8px">
+      <input id="s_url" placeholder="Projekt-URL, https://xyz.supabase.co" aria-label="Projekt-URL">
+      <input id="s_key" placeholder="Öffentlicher Schlüssel (anon oder publishable key)" aria-label="Öffentlicher Schlüssel">
+    </div>
+    <input id="s_name" placeholder="Anzeigename für die Rangliste (2 bis 30 Zeichen)" aria-label="Anzeigename" maxlength="30">
+    <input id="s_mail" type="email" placeholder="E-Mail" aria-label="E-Mail">
+    <input id="s_pw" type="password" placeholder="Passwort" aria-label="Passwort" autocomplete="current-password">
+    <input id="s_code" placeholder="Einladungscode" aria-label="Einladungscode" autocapitalize="characters">
+  </div>
+  <p id="s_hint" style="color:var(--mute);font-size:13px"></p>
+  <p id="serr" class="err" hidden></p>
+  <div class="row"><button id="s_off" style="margin-right:auto" hidden>Abmelden</button><button id="s_now" hidden>Jetzt abgleichen</button><button id="s_cancel">Schließen</button><button id="s_ok" class="primary">Anmelden</button></div>
+</dialog>
+
+<dialog id="kdlg">
+  <h3 style="margin-top:0">Einladungscodes</h3>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+    <select id="k_role" aria-label="Rolle" style="padding:6px"><option value="editor">Mitwirkend (darf bearbeiten)</option><option value="viewer">Nur ansehen</option></select>
+    <label>Nutzungen <input id="k_uses" type="number" min="1" value="1" style="width:70px"></label>
+    <label>Gültig (Tage) <input id="k_days" type="number" min="1" value="14" style="width:70px"></label>
+    <button id="k_new" class="primary">Code erzeugen</button>
+  </div>
+  <p id="k_out"></p>
+  <h4 style="margin-bottom:6px">Offene Codes</h4>
+  <div id="k_list"></div>
+  <p id="kerr" class="err" hidden></p>
+  <div class="row"><button id="k_close">Schließen</button></div>
+</dialog>
+
+<dialog id="pdlg" style="width:min(820px,96vw)">
+  <h3 style="margin-top:0">Position auf der Karte wählen</h3>
+  <p style="color:var(--mute);margin:0 0 8px;font-size:13px">In die Karte klicken, um die Position zu setzen. Der Marker lässt sich danach verschieben. Oben rechts wechselst du zur topografischen Karte.</p>
+  <div id="pmap" style="height:55vh;min-height:300px;border:1px solid var(--line);border-radius:8px"></div>
+  <p id="ppos" style="color:var(--mute);font-size:13px;margin:8px 0 0">Noch keine Position gewählt.</p>
+  <div class="row"><button id="p_cancel">Abbrechen</button><button id="p_ok" class="primary" disabled>Übernehmen</button></div>
+</dialog>
+
+<dialog id="adlg">
+  <h3 id="a_h" style="margin-top:0">Skigebiet hinzufügen</h3>
+  <div style="display:grid;gap:8px">
+    <input id="a_name" placeholder="Name, z. B. Winterberg" aria-label="Name">
+    <div style="display:flex;gap:8px"><input id="a_land" maxlength="2" placeholder="Land, z. B. DE" aria-label="Land (Kürzel)" style="width:40%"><input id="a_elev" type="number" placeholder="Höhe in m" aria-label="Höhe in Metern"></div>
+    <div style="display:flex;gap:8px"><input id="a_lat" placeholder="Breite, z. B. 51.195" aria-label="Breitengrad"><input id="a_lon" placeholder="Länge, z. B. 8.528" aria-label="Längengrad"></div>
+    <button type="button" id="a_find">Koordinaten zum Namen suchen</button>
+    <button type="button" id="a_pick">Position auf Karte wählen</button>
+    <div id="a_res" style="color:var(--mute);font-size:13px"></div>
+    <input id="a_map" placeholder="Pistenplan-URL, optional (sonst OpenSkiMap)" aria-label="Pistenplan-URL">
+  </div>
+  <p id="aerr" class="err" hidden></p>
+  <div class="row"><button id="a_del" style="margin-right:auto" hidden>Löschen</button><button id="a_cancel">Abbrechen</button><button id="a_save" class="primary">Speichern</button></div>
+</dialog>
+
+<dialog id="cdlg">
+  <h3 id="c_h" style="margin-top:0">Webcam hinzufügen</h3>
+  <div style="display:grid;gap:8px">
+    <input id="c_title" placeholder="Titel, z. B. Idalp" aria-label="Titel">
+    <input id="c_prov" placeholder="Anbieter, z. B. Panomax" aria-label="Anbieter">
+    <input id="c_url" placeholder="Webcam-URL (https://…), optional" aria-label="URL">
+    <input id="c_loc" placeholder="Standort, z. B. Bergstation Idalp" aria-label="Standort">
+    <input id="c_elev" type="number" placeholder="Höhe in m" aria-label="Höhe in Metern">
+    <div style="display:flex;gap:8px"><input id="c_lat" placeholder="Breite, z. B. 47.0069" aria-label="Breitengrad"><input id="c_lon" placeholder="Länge, z. B. 10.3010" aria-label="Längengrad"></div>
+    <button type="button" id="c_pick">Position auf Karte wählen</button>
+  </div>
+  <p style="color:var(--mute);font-size:13px">Position per Karte wählen oder Koordinaten eintragen. Ohne Angabe erscheint die Webcam am Gebietszentrum. Ist die Höhe leer, wird sie nach der Kartenwahl vorgeschlagen.</p>
+  <p id="cerr" class="err" hidden></p>
+  <div class="row"><button id="c_cancel">Abbrechen</button><button id="c_save" class="primary">Speichern</button></div>
+</dialog>
+
+<dialog id="dlg">
+  <h3 style="margin-top:0">Datensicherung (JSON)</h3>
+  <p style="color:var(--mute);margin:0 0 8px">Alle Daten als Text, zum Sichern oder zum Übertragen auf ein anderes Gerät. Zum normalen Bearbeiten reichen die Masken in der App.</p>
+  <textarea id="json" spellcheck="false" aria-label="Daten als JSON"></textarea>
+  <p id="jerr" class="err" hidden></p>
+  <div class="row">
+    <button id="reset">Zurücksetzen</button>
+    <button id="cancel">Abbrechen</button>
+    <button id="save" class="primary">Speichern</button>
+  </div>
+</dialog>
+
+<script>
+/* Fehleranzeige: zeigt unten eine gelbe Leiste, falls auf der Seite ein Skriptfehler auftritt */
+window.addEventListener("error",function(e){
+  var b=document.getElementById("errbar");
+  if(!b){b=document.createElement("div");b.id="errbar";b.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:99999;background:#f2cd5d;color:#3a1772;padding:10px 14px;font:14px system-ui,sans-serif;white-space:pre-wrap";(document.body||document.documentElement).appendChild(b)}
+  b.textContent="SkiView-Fehler: "+(e.message||"unbekannt")+(e.lineno?" (Zeile "+e.lineno+")":"");
+});
+</script>
+<script>
+/* HIER EINTRAGEN (gerade Anführungszeichen " verwenden, keine typografischen):
+   Projekt-URL und öffentlicher Schlüssel von Supabase. Dann müssen andere Nutzer sie nicht eingeben. */
+window.SKIVIEW_CONFIG={url:"",key:""};
+</script>
+<script>
+const CONFIG=Object.assign({url:"",key:""},window.SKIVIEW_CONFIG||{});
+CONFIG.url=String(CONFIG.url||"").trim().replace(/\/+$/,"");CONFIG.key=String(CONFIG.key||"").trim();
+// Startdaten. Koordinaten von Olpe-Fahlenscheid und Wilde Wiese sind Näherungswerte.
+// Webcam-Einträge: {title, provider, url}. Fehlt ein Eintrag, helfen die Suchlinks im Tab "Webcams".
+const slug=s=>String(s).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+const hash=s=>{let h=0;for(const c of String(s))h=(h*31+c.charCodeAt(0))|0;return (h>>>0).toString(36)};
+const newId=p=>"n"+p+"_"+Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4);
+function normalize(arr){arr.forEach(a=>{a.id=a.id||"a_"+(slug(a.name)||hash(a.name));a.u=a.u||0;a.webcams=a.webcams||[];a.webcams.forEach(w=>{w.id=w.id||a.id+"_"+hash((w.url||"")+w.title);w.u=w.u||0})});return arr}
+const A=(name,land,lat,lon,elev,webcams=[],pistenplan)=>({name,land,lat,lon,elev,webcams,...(pistenplan?{pistenplan}:{})});
+const DEFAULTS=[
+ A("Ischgl","AT",47.0113,10.2917,2300,[{title:"Webcams Silvretta Arena",provider:"Offiziell",url:"https://www.ischgl.com/en/More/Webcams"}]),
+ A("Zugspitze","DE",47.4211,10.9852,2960),
+ A("Val Gardena","IT",46.5560,11.7000,2000),
+ A("Hintertuxer Gletscher","AT",47.0667,11.6667,2600),
+ A("Mountopolis (Mayrhofen)","AT",47.1667,11.8667,2000,[{title:"Webcams Ahorn, Penken, Unterberg",provider:"Offiziell",url:"https://www.mayrhofen.at/en/pages/mountopolis-service"}]),
+ A("Damüls","AT",47.2800,9.8760,1700),
+ A("Winterberg","DE",51.1950,8.5280,700),
+ A("Willingen","DE",51.2926,8.6071,700),
+ A("Olpe Fahlenscheid","DE",51.0300,7.8300,450),
+ A("Wilde Wiese (Sundern)","DE",51.3200,8.0000,450),
+ A("Kitzbühel","AT",47.4467,12.3925,1700),
+ A("St. Anton am Arlberg","AT",47.1292,10.2686,2200),
+ A("Sölden","AT",46.9660,11.0070,2700),
+ A("Zermatt","CH",46.0207,7.7491,2900),
+ A("Chamonix","FR",45.9237,6.8694,2000),
+ A("Cortina d'Ampezzo","IT",46.5405,12.1357,1900)
+];
+normalize(DEFAULTS);
+const DEFAULT_FAVS=DEFAULTS.slice(0,10).map(a=>a.id);
+const KEY="skigebiete-v2", FKEY="skigebiete-fav-v1";
+let areas=load(), favs=loadFavs(), cur=null, tab="cams";
+let meta=(()=>{try{return JSON.parse(localStorage.getItem("skigebiete-meta"))||{}}catch(e){return {}}})();
+let tombs=(()=>{try{return JSON.parse(localStorage.getItem("skigebiete-tomb"))||[]}catch(e){return []}})();
+let role=null;
+const saveMeta=()=>{try{localStorage.setItem("skigebiete-meta",JSON.stringify(meta))}catch(e){}};
+const saveTombs=()=>{try{localStorage.setItem("skigebiete-tomb",JSON.stringify(tombs))}catch(e){}};
+const saveLocal=()=>{try{localStorage.setItem(KEY,JSON.stringify(areas));localStorage.setItem(FKEY,JSON.stringify(favs))}catch(e){}};
+function addTomb(o,kind,aid){tombs=tombs.filter(t=>t.id!==o.id);tombs.push({id:o.id,kind,area_id:aid,u:Date.now()});saveTombs()}
+function fixFavs(f){return [...new Set((f||[]).map(x=>(areas.find(a=>a.id===x)||areas.find(a=>a.name===x)||{}).id).filter(Boolean))]}
+const ro=()=>role==="viewer"||role==="none";
+function importAreas(n){
+  const old=new Map(),byName=new Map(areas.map(a=>[a.name,a])),now=Date.now(),keep=new Set();
+  areas.forEach(a=>{old.set(a.id,a);(a.webcams||[]).forEach(w=>old.set(w.id,w))});
+  n.forEach(a=>{
+    const ex=a.id&&old.has(a.id)?old.get(a.id):byName.get(a.name);
+    a.id=ex?ex.id:(a.id||newId("a"));a.u=now;a.webcams=a.webcams||[];keep.add(a.id);
+    a.webcams.forEach(w=>{w.id=w.id||a.id+"_"+hash((w.url||"")+w.title);w.u=now;keep.add(w.id)});
+  });
+  areas.forEach(a=>{if(!keep.has(a.id))addTomb(a,"area",null);(a.webcams||[]).forEach(w=>{if(!keep.has(w.id))addTomb(w,"cam",a.id)})});
+  tombs=tombs.filter(t=>!keep.has(t.id));saveTombs();
+  areas=n;favs=fixFavs(favs);
+}
+favs=fixFavs(favs);
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+function load(){try{const r=localStorage.getItem(KEY);if(r)return normalize(JSON.parse(r))}catch(e){}return structuredClone(DEFAULTS)}
+function loadFavs(){try{const r=localStorage.getItem(FKEY);if(r)return JSON.parse(r)}catch(e){}return [...DEFAULT_FAVS]}
+function persistFavs(){meta.favu=Date.now();saveMeta();try{localStorage.setItem(FKEY,JSON.stringify(favs))}catch(e){}schedule()}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(areas))}catch(e){}schedule()}
+
+function renderList(){
+  const q=$("#q").value.trim().toLowerCase(), l=$("#land").value;
+  const fo=$("#fav").checked;
+  const rows=areas.filter(a=>(!l||a.land===l)&&(!fo||favs.includes(a.id))&&a.name.toLowerCase().includes(q)).sort((x,y)=>favs.includes(y.id)-favs.includes(x.id)||x.name.localeCompare(y.name,"de"));
+  $("#list").innerHTML=rows.map(a=>`<li><button data-n="${esc(a.id)}" aria-current="${!!cur&&cur.id===a.id}"><span>${favs.includes(a.id)?"★ ":""}${esc(a.name)}</span><small>${esc(a.land)}</small></button></li>`).join("")||`<li class="empty">Kein Skigebiet gefunden.</li>`;
+}
+function renderLands(){
+  const lands=[...new Set(areas.map(a=>a.land))].sort();
+  $("#land").innerHTML=`<option value="">Alle Länder</option>`+lands.map(x=>`<option>${esc(x)}</option>`).join("");
+}
+function renderView(){
+  const v=$("#view");
+  if(!cur){v.innerHTML=`<div class="empty">Wähle links ein Skigebiet aus.</div>`;return}
+  v.innerHTML=`<div class="top"><h2>${esc(cur.name)}</h2><button data-star aria-pressed="${favs.includes(cur.id)}">${favs.includes(cur.id)?"★ Favorit":"☆ Merken"}</button>${ro()?"":"<button data-aedit>Gebiet bearbeiten</button>"}<span>${esc(cur.land)}${cur.elev?` · ${esc(cur.elev)} m`:""}</span></div>
+  <div class="tabs" role="tablist">${[["cams","Webcams"],["cmap","Webcam-Karte"],["map","Pistenplan"],["wx","Wetter"]].map(([k,t])=>`<button role="tab" data-t="${k}" aria-selected="${tab===k}">${t}</button>`).join("")}</div>
+  <div id="body"></div>`;
+  ({cams:showCams,cmap:showCamMap,map:showMap,wx:showWx})[tab]();
+}
+function provLinks(a){const n=encodeURIComponent(a.name),g=x=>`https://www.google.com/search?q=${n}+${x}`;return [["foto-webcam.eu",g("webcam+site:foto-webcam.eu")],["Panomax",g("webcam+site:panomax.com")],["Bergfex",g("webcam+site:bergfex.at")],["Offizielle Seite",g("Skigebiet+Webcam")]];}
+const camMeta=w=>[w.standort,w.elev!=null&&w.elev!==""?`${w.elev} m`:""].filter(Boolean).join(" · ");
+function showCams(){
+  const c=cur.webcams||[];
+  const links=`<p>Webcams suchen bei: ${provLinks(cur).map(([t,u])=>`<a class="link" style="margin-right:14px" href="${esc(u)}" target="_blank" rel="noopener">${t}</a>`).join("")}${ro()?"":`<button class="primary" data-add>Webcam hinzufügen</button>`}</p>`;
+  $("#body").innerHTML=links+(c.length?`<div class="grid">${c.map((w,i)=>`<div class="cam">${w.url?`<iframe loading="lazy" src="${esc(w.url)}" title="${esc(w.title)}" referrerpolicy="no-referrer"></iframe>`:""}<div><span>${w.provider?esc(w.provider)+": ":""}${esc(w.title)}</span>${w.url?`<a href="${esc(w.url)}" target="_blank" rel="noopener">Im neuen Tab öffnen</a>`:""}</div><p class="meta"><span>${esc(camMeta(w))||"Standort und Höhe nicht angegeben"}</span>${ro()?"":`<span><button data-edit="${i}">Bearbeiten</button> <button data-del="${i}">Entfernen</button></span>`}</p></div>`).join("")}</div>
+  <p style="color:var(--mute);font-size:13px">Bleibt ein Feld leer, erlaubt der Anbieter keine Einbettung. Dann den Link rechts oben in der Kachel nutzen.</p>`
+  :`<div class="empty">Noch keine Webcam hinterlegt. Über die Suchlinks eine Seite finden und mit „Webcam hinzufügen“ eintragen.</div>`);
+}
+let map=null;
+function initMap(host){
+  if(typeof L==="undefined"){host.innerHTML=`<div class="err">Die Kartenbibliothek (Leaflet) konnte nicht geladen werden. Internetverbindung prüfen.</div>`;return null}
+  host.innerHTML=`<div class="cm"></div>`;
+  if(map){map.remove();map=null}
+  map=L.map(host.firstChild);
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:"© OpenStreetMap-Mitwirkende"}).addTo(map);
+  return map;
+}
+function openArea(n){cur=areas.find(a=>a.id===n);tab="cams";renderList();renderView();}
+const openLink=a=>`<a href="#" onclick="openArea(${esc(JSON.stringify(a.id))});return false">Gebiet öffnen</a>`;
+const camPop=(w,a)=>`<b>${esc(w.title)}</b><br>${w.provider?esc(w.provider)+"<br>":""}${esc(camMeta(w))}${w.lat==null||w.lon==null?"<br><i>Position ungefähr (Gebietszentrum)</i>":""}${w.url?`<br><a href="${esc(w.url)}" target="_blank" rel="noopener">Webcam öffnen</a>`:""}<br>${openLink(a)}`;
+function plot(m,list){
+  const pts=[];
+  list.forEach(a=>{
+    const cams=a.webcams||[];
+    if(!cams.length){L.circleMarker([a.lat,a.lon],{radius:6}).addTo(m).bindPopup(`<b>${esc(a.name)}</b><br>Keine Webcam hinterlegt<br>${openLink(a)}`);pts.push([a.lat,a.lon]);return}
+    cams.forEach(w=>{const pos=typeof w.lat==="number"&&typeof w.lon==="number"?[w.lat,w.lon]:[a.lat,a.lon];L.marker(pos).addTo(m).bindPopup(camPop(w,a));pts.push(pos)});
+  });
+  if(pts.length===1)m.setView(pts[0],12);else m.fitBounds(pts,{padding:[30,30]});
+}
+function showCamMap(){const m=initMap($("#body"));if(m)plot(m,[cur]);}
+function showGlobalMap(){
+  cur=null;renderList();
+  $("#view").innerHTML=`<div class="top"><h2>Webcam-Karte</h2><span>Alle Skigebiete. Webcams ohne eigene Position liegen am Gebietszentrum.</span></div><div id="gm"></div>`;
+  const m=initMap($("#gm"));if(m)plot(m,areas);
+}
+function showMap(){
+  const url=cur.pistenplan||`https://www.openskimap.org/#13/${cur.lat}/${cur.lon}`;
+  $("#body").innerHTML=`<div class="map"><iframe loading="lazy" src="${esc(url)}" title="Pistenplan ${esc(cur.name)}"></iframe></div>
+  <p><a class="link" href="${esc(url)}" target="_blank" rel="noopener">Pistenplan im neuen Tab öffnen</a>${cur.pistenplan?"":` <span style="color:var(--mute)">· Standard: OpenSkiMap. Eigene Pistenplan-URL über „Gebiet bearbeiten“ eintragen.</span>`}</p>`;
+}
+const WMO={0:"Klar",1:"Überwiegend klar",2:"Wolkig",3:"Bedeckt",45:"Nebel",48:"Reifnebel",51:"Leichter Niesel",53:"Niesel",55:"Starker Niesel",61:"Leichter Regen",63:"Regen",65:"Starker Regen",71:"Leichter Schneefall",73:"Schneefall",75:"Starker Schneefall",77:"Schneegriesel",80:"Schauer",81:"Schauer",82:"Starke Schauer",85:"Schneeschauer",86:"Starke Schneeschauer",95:"Gewitter",96:"Gewitter mit Hagel",99:"Gewitter mit Hagel"};
+async function showWx(){
+  const b=$("#body"), area=cur;
+  b.innerHTML=`<div class="empty">Wetter wird geladen …</div>`;
+  const u=`https://api.open-meteo.com/v1/forecast?latitude=${area.lat}&longitude=${area.lon}${area.elev?`&elevation=${area.elev}`:""}&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m,snowfall&daily=weather_code,temperature_2m_max,temperature_2m_min,snowfall_sum,precipitation_probability_max,wind_speed_10m_max&timezone=auto&forecast_days=7`;
+  try{
+    const r=await fetch(u); if(!r.ok) throw new Error(r.status);
+    const d=await r.json(); if(cur!==area||tab!=="wx") return;
+    const c=d.current, dd=d.daily;
+    b.innerHTML=`<div class="now"><div class="t">${Math.round(c.temperature_2m)}°</div><div><b>${WMO[c.weather_code]||"–"}</b><br>Gefühlt ${Math.round(c.apparent_temperature)}° · Wind ${Math.round(c.wind_speed_10m)} km/h</div><div style="color:var(--mute)">Auf ${area.elev||"Talhöhe"}${area.elev?" m":""} berechnet. Daten: Open-Meteo</div></div>
+    <div class="days">${dd.time.map((t,i)=>`<div class="day"><b>${new Date(t).toLocaleDateString("de-DE",{weekday:"short",day:"numeric",month:"numeric"})}</b>${WMO[dd.weather_code[i]]||"–"}<p>${Math.round(dd.temperature_2m_min[i])}° bis ${Math.round(dd.temperature_2m_max[i])}°</p><p>Neuschnee ${dd.snowfall_sum[i]} cm</p><p>Niederschlag ${dd.precipitation_probability_max[i]} %</p><p>Wind bis ${Math.round(dd.wind_speed_10m_max[i])} km/h</p></div>`).join("")}</div>`;
+  }catch(e){ if(cur===area) b.innerHTML=`<div class="err">Wetterdaten konnten nicht geladen werden. Internetverbindung prüfen und den Tab erneut öffnen.</div>`; }
+}
+
+$("#list").addEventListener("click",e=>{const b=e.target.closest("button[data-n]");if(!b)return;cur=areas.find(a=>a.id===b.dataset.n);renderList();renderView();});
+$("#view").addEventListener("click",e=>{
+  if(e.target.closest("[data-add]")){openCamDlg();return}
+  if(e.target.closest("[data-aedit]")){openAreaDlg(cur);return}
+  const ed=e.target.closest("[data-edit]");if(ed){openCamDlg(+ed.dataset.edit);return}
+  const dl=e.target.closest("[data-del]");
+  if(dl){const w=cur.webcams[+dl.dataset.del];if(!ro()&&w&&confirm(`Webcam „${w.title}“ entfernen?`)){addTomb(w,"cam",cur.id);cur.webcams.splice(+dl.dataset.del,1);persist();showCams()}return}
+  if(e.target.closest("[data-star]")){favs=favs.includes(cur.id)?favs.filter(n=>n!==cur.id):[...favs,cur.id];persistFavs();renderList();renderView();return}
+  const o=e.target.closest("[data-open]");
+  if(o){e.preventDefault();cur=areas.find(a=>a.id===o.dataset.open);tab="cams";renderList();renderView();return}
+  const b=e.target.closest("button[data-t]");if(!b)return;tab=b.dataset.t;renderView();
+});
+$("#fav").addEventListener("change",renderList);
+$("#fav-ov").onclick=()=>showOverview();
+$("#gmap-btn").onclick=showGlobalMap;
+const cdlg=$("#cdlg"),cf=["title","prov","url","loc","elev","lat","lon"];
+let editC=null;
+function openCamDlg(i){
+  if(ro())return;
+  editC=i==null?null:i;const w=i==null?{}:cur.webcams[i];
+  $("#c_h").textContent=i==null?"Webcam hinzufügen":"Webcam bearbeiten";
+  const m={title:w.title,prov:w.provider,url:w.url,loc:w.standort,elev:w.elev,lat:w.lat,lon:w.lon};
+  cf.forEach(k=>$("#c_"+k).value=m[k]??"");$("#cerr").hidden=true;cdlg.showModal();
+}
+$("#c_cancel").onclick=()=>cdlg.close();
+$("#c_save").onclick=()=>{
+  const v=k=>$("#c_"+k).value.trim(),err=m=>{const p=$("#cerr");p.textContent=m;p.hidden=false};
+  if(!v("title"))return err("Bitte einen Titel angeben.");
+  if(v("url")&&!/^https?:\/\//.test(v("url")))return err("Die URL muss mit http:// oder https:// beginnen.");
+  const w={title:v("title"),id:editC==null?newId("c"):cur.webcams[editC].id,u:Date.now()};
+  if(v("prov"))w.provider=v("prov");
+  if(v("url"))w.url=v("url");
+  if(v("loc"))w.standort=v("loc");
+  if(v("elev")){const n=Number(v("elev"));if(!isFinite(n))return err("Die Höhe muss eine Zahl sein.");w.elev=n}
+  if(v("lat")||v("lon")){
+    const la=Number(v("lat").replace(",",".")),lo=Number(v("lon").replace(",","."));
+    if(!v("lat")||!v("lon")||!isFinite(la)||!isFinite(lo)||Math.abs(la)>90||Math.abs(lo)>180)return err("Breite und Länge müssen beide als Zahl angegeben werden, z. B. 47.0069 und 10.3010.");
+    w.lat=la;w.lon=lo;
+  }
+  cur.webcams=cur.webcams||[];if(editC==null)cur.webcams.push(w);else cur.webcams[editC]=w;persist();cdlg.close();showCams();
+};
+function showOverview(){
+  cur=null;renderList();
+  const f=areas.filter(a=>favs.includes(a.id)),v=$("#view");
+  if(!f.length){v.innerHTML=`<div class="empty">Noch keine Favoriten. Ein Skigebiet öffnen und „Merken“ wählen.</div>`;return}
+  v.innerHTML=`<div class="top"><h2>Favoriten</h2><span>Aktuelles Wetter, Klick auf den Namen öffnet Webcams</span></div><div class="days" style="grid-template-columns:repeat(auto-fill,minmax(210px,1fr))">${f.map((a,i)=>`<div class="day"><b><a class="link" href="#" data-open="${esc(a.id)}">${esc(a.name)}</a></b><p id="ov${i}">Wetter lädt …</p></div>`).join("")}</div>`;
+  f.forEach(async(a,i)=>{
+    const el=()=>cur?null:document.getElementById("ov"+i);
+    try{
+      const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${a.lat}&longitude=${a.lon}${a.elev?`&elevation=${a.elev}`:""}&current=temperature_2m,weather_code,wind_speed_10m&daily=snowfall_sum&timezone=auto&forecast_days=1`);
+      const d=await r.json(),e=el();
+      if(e)e.innerHTML=`${Math.round(d.current.temperature_2m)}° ${WMO[d.current.weather_code]||""}<br>Wind ${Math.round(d.current.wind_speed_10m)} km/h<br>Neuschnee heute ${d.daily.snowfall_sum[0]} cm`;
+    }catch(x){const e=el();if(e)e.textContent="Wetter nicht verfügbar"}
+  });
+}
+$("#q").addEventListener("input",renderList);
+$("#land").addEventListener("change",renderList);
+
+const dlg=$("#dlg");
+$("#edit").onclick=()=>{$("#json").value=JSON.stringify(areas,null,2);$("#jerr").hidden=true;dlg.showModal();};
+$("#cancel").onclick=()=>dlg.close();
+$("#reset").onclick=()=>{$("#json").value=JSON.stringify(DEFAULTS,null,2);};
+$("#save").onclick=()=>{
+  try{
+    const n=JSON.parse($("#json").value);
+    if(!Array.isArray(n)||n.some(a=>!a.name||typeof a.lat!=="number"||typeof a.lon!=="number")) throw new Error("Jedes Gebiet braucht name, lat und lon (als Zahlen).");
+    importAreas(n);persist();const cid=cur&&cur.id;cur=areas.find(a=>a.id===cid)||null;
+    renderLands();renderList();renderView();dlg.close();
+  }catch(e){const p=$("#jerr");p.textContent="Fehler: "+e.message;p.hidden=false;}
+};
+
+const adlg=$("#adlg");
+let editA=null;
+function openAreaDlg(a){
+  if(ro())return;
+  editA=a||null;$("#a_h").textContent=a?"Skigebiet bearbeiten":"Skigebiet hinzufügen";
+  $("#a_name").value=a?.name||"";$("#a_land").value=a?.land||"";$("#a_elev").value=a?.elev??"";
+  $("#a_lat").value=a?.lat??"";$("#a_lon").value=a?.lon??"";$("#a_map").value=a?.pistenplan||"";
+  $("#a_res").textContent="";$("#aerr").hidden=true;$("#a_del").hidden=!a;adlg.showModal();
+}
+$("#add-area").onclick=()=>openAreaDlg();
+$("#a_cancel").onclick=()=>adlg.close();
+$("#a_find").onclick=async()=>{
+  const n=$("#a_name").value.replace(/\s*\(.*\)/,"").trim(),r=$("#a_res");
+  if(!n){r.textContent="Bitte zuerst einen Namen eingeben.";return}
+  r.textContent="Suche läuft …";
+  try{
+    const d=await(await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(n)}&count=5&language=de`)).json();
+    if(!d.results){r.textContent="Nichts gefunden. Koordinaten bitte von Hand eintragen.";return}
+    r._d=d.results;
+    r.innerHTML=d.results.map((x,i)=>`<button type="button" data-g="${i}" style="display:block;width:100%;text-align:left;margin-bottom:4px">${esc(x.name)}${x.admin1?", "+esc(x.admin1):""} (${esc(x.country_code||"")})${x.elevation!=null?", "+Math.round(x.elevation)+" m":""}</button>`).join("");
+  }catch(e){r.textContent="Suche nicht möglich. Internetverbindung prüfen."}
+};
+$("#a_res").onclick=e=>{
+  const b=e.target.closest("[data-g]");if(!b)return;const r=$("#a_res"),x=r._d[b.dataset.g];
+  $("#a_lat").value=x.latitude;$("#a_lon").value=x.longitude;
+  if(x.country_code)$("#a_land").value=x.country_code;
+  if(x.elevation!=null&&!$("#a_elev").value)$("#a_elev").value=Math.round(x.elevation);
+  r.textContent="Übernommen. Die Höhe bitte auf Pistenhöhe (Mittel- oder Bergstation) anpassen, sie bestimmt die Wetterwerte.";
+};
+$("#a_save").onclick=()=>{
+  const v=k=>$("#a_"+k).value.trim(),err=m=>{const p=$("#aerr");p.textContent=m;p.hidden=false};
+  const name=v("name");if(!name)return err("Bitte einen Namen angeben.");
+  if(areas.some(a=>a!==editA&&a.name===name))return err("Ein Skigebiet mit diesem Namen gibt es schon.");
+  const lat=Number(v("lat").replace(",",".")),lon=Number(v("lon").replace(",","."));
+  if(!v("lat")||!v("lon")||!isFinite(lat)||!isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180)return err("Breite und Länge als Zahl angeben, z. B. 51.195 und 8.528, oder oben suchen lassen.");
+  if(v("elev")&&!isFinite(Number(v("elev"))))return err("Die Höhe muss eine Zahl sein.");
+  if(v("map")&&!/^https?:\/\//.test(v("map")))return err("Die Pistenplan-URL muss mit http:// oder https:// beginnen.");
+  const o=editA||{id:newId("a"),webcams:[]};
+  Object.assign(o,{name,land:(v("land")||"–").toUpperCase(),lat,lon,u:Date.now()});
+  if(v("elev"))o.elev=Number(v("elev"));else delete o.elev;
+  if(v("map"))o.pistenplan=v("map");else delete o.pistenplan;
+  if(!editA)areas.push(o);
+  persist();cur=o;if(!editA)tab="cams";
+  renderLands();renderList();renderView();adlg.close();
+};
+$("#a_del").onclick=()=>{
+  if(!editA||!confirm(`„${editA.name}“ samt Webcams löschen?`))return;
+  addTomb(editA,"area",null);(editA.webcams||[]).forEach(w=>addTomb(w,"cam",editA.id));areas=areas.filter(a=>a!==editA);favs=favs.filter(n=>n!==editA.id);
+  persist();persistFavs();adlg.close();renderLands();showOverview();
+};
+
+const pdlg=$("#pdlg");let pmap=null,pmark=null,pcb=null,ppt=null;
+function pickPos(start,fallback,cb,z=13){
+  if(typeof L==="undefined"){alert("Die Kartenbibliothek konnte nicht geladen werden. Internetverbindung prüfen.");return}
+  pcb=cb;ppt=null;$("#p_ok").disabled=true;$("#ppos").textContent="Noch keine Position gewählt.";
+  pdlg.showModal();
+  if(!pmap){
+    pmap=L.map("pmap");
+    const osm=L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:"© OpenStreetMap-Mitwirkende"}).addTo(pmap);
+    const topo=L.tileLayer("https://tile.opentopomap.org/{z}/{x}/{y}.png",{maxZoom:17,attribution:"© OpenStreetMap-Mitwirkende, SRTM | © OpenTopoMap (CC-BY-SA)"});
+    L.control.layers({"Straßenkarte":osm,"Topografisch":topo}).addTo(pmap);
+    pmap.on("click",e=>setP(e.latlng));
+  }
+  if(pmark){pmark.remove();pmark=null}
+  pmap.invalidateSize();
+  pmap.setView(start||fallback,start?15:z);
+  if(start)setP({lat:start[0],lng:start[1]});
+}
+function setP(ll){
+  ppt=[+ll.lat.toFixed(5),+ll.lng.toFixed(5)];
+  if(!pmark){pmark=L.marker(ll,{draggable:true}).addTo(pmap);pmark.on("dragend",()=>setP(pmark.getLatLng()))}else pmark.setLatLng(ll);
+  $("#ppos").textContent=`Position: ${ppt[0]}, ${ppt[1]}`;$("#p_ok").disabled=false;
+}
+$("#p_cancel").onclick=()=>pdlg.close();
+$("#p_ok").onclick=()=>{if(ppt&&pcb)pcb(ppt);pdlg.close()};
+const num=id=>parseFloat($(id).value.replace(",","."));
+$("#c_pick").onclick=()=>{
+  const la=num("#c_lat"),lo=num("#c_lon");
+  pickPos(isFinite(la)&&isFinite(lo)?[la,lo]:null,[cur.lat,cur.lon],p=>{
+    $("#c_lat").value=p[0];$("#c_lon").value=p[1];
+    if(!$("#c_elev").value)fetch(`https://api.open-meteo.com/v1/elevation?latitude=${p[0]}&longitude=${p[1]}`).then(r=>r.json()).then(d=>{if(d.elevation&&!$("#c_elev").value)$("#c_elev").value=Math.round(d.elevation[0])}).catch(()=>{});
+  });
+};
+$("#a_pick").onclick=()=>{
+  const la=num("#a_lat"),lo=num("#a_lon");
+  pickPos(isFinite(la)&&isFinite(lo)?[la,lo]:null,[47,10.5],p=>{$("#a_lat").value=p[0];$("#a_lon").value=p[1]},5);
+};
+
+/* ---- Cloud-Abgleich (Supabase) ---- */
+let sb=null,syncCfg=null,syncTimer=null,syncing=false,again=false;
+try{syncCfg=JSON.parse(localStorage.getItem("skigebiete-sync"))}catch(e){}
+const setSt=t=>{$("#sync-st").textContent=t};
+function initSb(){
+  sb=null;const cfg=syncCfg||(CONFIG.url?{url:CONFIG.url,key:CONFIG.key}:null);if(!cfg)return;
+  if(typeof supabase==="undefined"){setSt("Sync: Bibliothek nicht geladen");return}
+  sb=supabase.createClient(cfg.url,cfg.key);
+}
+function schedule(){if(!sb)return;clearTimeout(syncTimer);syncTimer=setTimeout(sync,800);setSt("Sync: ausstehend …")}
+function applyRole(){$("#add-area").hidden=$("#edit").hidden=ro();$("#codes-btn").hidden=role!=="admin"}
+function rerender(){const id=cur&&cur.id;cur=id?areas.find(a=>a.id===id)||null:null;applyRole();renderLands();renderList();cur?renderView():showOverview()}
+const strip=o=>{const {id,u,webcams,...d}=o;return d};
+const rowOf=(o,kind,aid)=>({id:o.id,kind,area_id:aid,data:strip(o),u:o.u||0,deleted:false});
+const tombRow=t=>({id:t.id,kind:t.kind,area_id:t.area_id,data:{},u:t.u,deleted:true});
+const sig=arr=>JSON.stringify(arr.map(x=>[x.id,x.u,(x.webcams||[]).map(w=>[w.id,w.u]).sort()]).sort());
+
+function rebuild(rows){
+  const live=rows.filter(r=>!r.deleted),m=new Map();
+  const na=live.filter(r=>r.kind==="area").map(r=>{const a={...r.data,id:r.id,u:Number(r.u),webcams:[]};m.set(r.id,a);return a});
+  live.filter(r=>r.kind==="cam").forEach(r=>{const a=m.get(r.area_id);if(a)a.webcams.push({...r.data,id:r.id,u:Number(r.u)})});
+  if(sig(na)===sig(areas))return false;
+  areas=na;return true;
+}
+async function merge(rows){
+  let changed=false;const out=[],tdone=new Set(),idx=new Map(),seen=new Set(),tm=new Map(tombs.map(t=>[t.id,t]));
+  areas.forEach(a=>{idx.set(a.id,{k:"area",o:a});(a.webcams||[]).forEach(w=>idx.set(w.id,{k:"cam",o:w,a}))});
+  const localRow=L=>L.k==="area"?rowOf(L.o,"area",null):rowOf(L.o,"cam",L.a.id);
+  for(const r of [...rows].sort((x,y)=>(x.kind==="area"?0:1)-(y.kind==="area"?0:1))){
+    seen.add(r.id);const ru=Number(r.u),L=idx.get(r.id),t=tm.get(r.id);
+    if(t){
+      tdone.add(t.id);
+      if(t.u>=ru){if(!r.deleted||t.u>ru)out.push(tombRow(t));continue}
+    }
+    if(r.deleted){
+      if(L&&(L.o.u||0)<=ru){
+        if(L.k==="area")areas=areas.filter(x=>x!==L.o);else L.a.webcams=L.a.webcams.filter(x=>x!==L.o);
+        idx.delete(r.id);changed=true;
+      }else if(L)out.push(localRow(L));
+      continue;
+    }
+    if(!L){
+      if(r.kind==="area"){const a={...r.data,id:r.id,u:ru,webcams:[]};areas.push(a);idx.set(a.id,{k:"area",o:a});changed=true}
+      else{const pa=idx.get(r.area_id);if(pa&&pa.k==="area"){const w={...r.data,id:r.id,u:ru};pa.o.webcams.push(w);idx.set(w.id,{k:"cam",o:w,a:pa.o});changed=true}}
+      continue;
+    }
+    const lu=L.o.u||0;
+    if(ru>lu){
+      const o=L.o,keepCams=L.k==="area"?o.webcams:null;
+      Object.keys(o).forEach(k=>delete o[k]);Object.assign(o,r.data,{id:r.id,u:ru});if(keepCams)o.webcams=keepCams;changed=true;
+    }else if(ru<lu)out.push(localRow(L));
+  }
+  areas.forEach(a=>{
+    if(!seen.has(a.id))out.push(rowOf(a,"area",null));
+    (a.webcams||[]).forEach(w=>{if(!seen.has(w.id))out.push(rowOf(w,"cam",a.id))});
+  });
+  tm.forEach(t=>{if(!seen.has(t.id)){out.push(tombRow(t));tdone.add(t.id)}});
+  if(out.length){const {error}=await sb.from("skiitems").upsert(out);if(error)throw error}
+  tombs=tombs.filter(t=>!tdone.has(t.id));saveTombs();
+  return changed;
+}
+async function syncFavs(uid){
+  const {data,error}=await sb.from("skiprefs").select("favs,u").maybeSingle();
+  if(error)throw error;
+  const ru=data?Number(data.u):-1,lu=meta.favu||0;
+  if(data&&ru>lu){favs=fixFavs(data.favs);meta.favu=ru;saveMeta();return true}
+  if(!data||ru<lu){const r=await sb.from("skiprefs").upsert({user_id:uid,favs,u:lu});if(r.error)throw r.error}
+  return false;
+}
+async function sync(){
+  if(!sb)return;
+  if(syncing){again=true;return}
+  syncing=true;
+  try{
+    const {data:ses}=await sb.auth.getSession();
+    if(!ses.session){setSt("Sync: nicht angemeldet");return}
+    const old=role;let me=await getMe();
+    if(me.role==="none"&&pend()){
+      const pd=pend();setPend(null);
+      const {error:e2}=await sb.rpc("ski_redeem",{p_code:pd.code,p_name:pd.name||""});
+      if(e2){setSt("Code-Fehler");alert("Einladungscode: "+e2.message)}
+      me=await getMe();
+    }
+    role=me.role;
+    if(role==="none"){setSt("Sync: kein Zugriff, Rolle fehlt");applyRole();if(old!==role)rerender();return}
+    if(!me.name&&!askedName){
+      askedName=true;
+      const nm=(prompt("Wähle einen Anzeigenamen für die Rangliste (2 bis 30 Zeichen):")||"").trim().slice(0,30);
+      if(nm.length>=2){const {error:e3}=await sb.rpc("ski_set_name",{p_name:nm});if(e3)alert(e3.message)}
+    }
+    const {data:rows,error}=await sb.from("skiitems").select("*");
+    if(error)throw error;
+    let changed=role==="viewer"?rebuild(rows):await merge(rows);
+    changed=await syncFavs(ses.session.user.id)||changed;
+    saveLocal();
+    myId=ses.session.user.id;try{await loadScores()}catch(e){}
+    if(changed||old!==role)rerender();
+    setSt(role==="viewer"?"Sync: aktuell (nur lesen)":"Sync: aktuell");
+  }catch(e){setSt("Sync: Fehler, "+(e.message||"unbekannt"))}
+  finally{syncing=false;if(again){again=false;schedule()}}
+}
+const sdlg=$("#sdlg");
+let mode="in",askedName=false,board=[],myId=null;
+const PK="skiview-pending";
+const pend=()=>{try{return JSON.parse(localStorage.getItem(PK))}catch(e){return null}};
+const setPend=o=>{try{o?localStorage.setItem(PK,JSON.stringify(o)):localStorage.removeItem(PK)}catch(e){}};
+async function getMe(){
+  const {data,error}=await sb.rpc("ski_me");if(error)throw error;
+  const r=data&&data[0];
+  return {role:r&&["admin","editor","viewer"].includes(r.role)?r.role:"none",name:r?r.name:null};
+}
+
+/* Ränge: Skigebiete der Alpen, aufsteigend nach Pistenkilometern (Betreiberangaben, gerundet, Quellen weichen voneinander ab).
+   p = nötige Punkte, n = nötige Einträge (nur beim ersten Rang). Werte lassen sich hier anpassen. */
+const RANKS=[
+ {name:"Steinplatte-Winklmoosalm",km:42,p:12,n:5},
+ {name:"Oberstdorf/Kleinwalsertal",km:130,p:30},
+ {name:"Ischgl-Samnaun",km:238,p:60},
+ {name:"Saalbach-Hinterglemm",km:270,p:100},
+ {name:"SkiWelt Wilder Kaiser-Brixental",km:284,p:150},
+ {name:"Ski Arlberg",km:305,p:215},
+ {name:"Les 4 Vallées",km:412,p:295},
+ {name:"Les Portes du Soleil",km:580,p:395},
+ {name:"Les 3 Vallées",km:600,p:515},
+ {name:"Ski amadé",km:760,p:660},
+ {name:"Dolomiti Superski",km:1200,p:830}
+];
+const rankOf=(p,n)=>{let r=-1;for(let i=0;i<RANKS.length;i++){if(p>=RANKS[i].p&&n>=(RANKS[i].n||0))r=i;else break}return r};
+
+async function loadScores(){
+  const {data,error}=await sb.rpc("ski_leaderboard");if(error)throw error;
+  board=data||[];
+  const me=board.find(x=>x.user_id===myId);
+  if(me){const r=rankOf(+me.points,+me.entries);$("#me-st").textContent=`${r>=0?RANKS[r].name:"Einsteiger"} · ${me.points} Pkt.`}
+  else $("#me-st").textContent="";
+}
+function showRank(){
+  cur=null;renderList();const v=$("#view");
+  if(!sb||!role||role==="none"){v.innerHTML=`<div class="empty">Melde dich über „Konto“ an, um Punkte zu sammeln und die Rangliste zu sehen.</div>`;return}
+  const me=board.find(x=>x.user_id===myId),pts=me?+me.points:0,ent=me?+me.entries:0,r=rankOf(pts,ent),nx=RANKS[r+1];
+  const bar=(a,b)=>`<div style="background:var(--line);border-radius:6px;height:8px;margin:4px 0 10px"><div style="width:${Math.min(100,Math.round(a/b*100))}%;background:var(--mid);height:8px;border-radius:6px"></div></div>`;
+  const cr=r>=0?`<b>${esc(RANKS[r].name)}</b> (${RANKS[r].km} Pistenkilometer)`:"<b>Noch ohne Rang</b>";
+  const next=nx?`Nächster Rang: <b>${esc(nx.name)}</b> (${nx.km} km)<br>${Math.min(pts,nx.p)} von ${nx.p} Punkten${bar(pts,nx.p)}${nx.n?`${Math.min(ent,nx.n)} von ${nx.n} Einträgen${bar(ent,nx.n)}`:""}`:"Höchster Rang erreicht.";
+  const rows=board.map((x,i)=>{const k=rankOf(+x.points,+x.entries);return `<tr class="${x.user_id===myId?"me":""}"><td>${i+1}</td><td>${esc(x.name)}</td><td>${k>=0?esc(RANKS[k].name):"–"}</td><td>${x.points}</td><td>${x.entries}</td></tr>`}).join("");
+  v.innerHTML=`<div class="top"><h2>Rangliste</h2><span>Punkte gibt es für neue Webcams und Informationen dazu</span></div>
+  <div class="now" style="display:block"><div>Dein Rang: ${cr}</div><div style="margin:6px 0 8px">${pts} Punkte, ${ent} Einträge${ro()?" (Betrachter sammeln keine Punkte)":""}</div><div>${next}</div></div>
+  <h3>Bestenliste</h3>
+  <div style="overflow-x:auto"><table><tr><th>#</th><th>Name</th><th>Rang</th><th>Punkte</th><th>Einträge</th></tr>${rows||`<tr><td colspan="5">Noch keine Einträge.</td></tr>`}</table></div>
+  <h3>Die Ränge</h3>
+  <p style="color:var(--mute);margin-top:0">Von kleinen zu großen Skigebieten der Alpen. Der erste Rang braucht mindestens 5 Einträge, danach zählen nur noch Punkte.</p>
+  <div style="overflow-x:auto"><table><tr><th>Rang</th><th>Skigebiet</th><th>Pistenkm</th><th>Punkte ab</th></tr>${RANKS.map((x,i)=>`<tr class="${i===r?"me":""}"><td>${i+1}</td><td>${esc(x.name)}</td><td>ca. ${x.km}</td><td>${x.p}</td></tr>`).join("")}</table></div>
+  <h3>So gibt es Punkte</h3>
+  <p style="margin-top:0">Neue Webcam 3, neues Skigebiet 3. Pro Webcam zusätzlich: Webcam-URL 2, Position 2, Anbieter 1, Standort 1, Höhe 1. Jede Information zählt pro Webcam einmal, auch wenn du sie später nachträgst. Jeder Eintrag zählt als ein Eintrag. Punkte zählen nur, solange der Eintrag existiert.</p>`;
+}
+$("#rank-btn").onclick=showRank;
+
+function setMode(m){
+  mode=m;const up=m==="up";
+  $("#s_tab_in").setAttribute("aria-selected",!up);$("#s_tab_up").setAttribute("aria-selected",up);
+  $("#s_name").style.display=up?"":"none";
+  $("#s_ok").textContent=up?"Registrieren":"Anmelden";
+  $("#s_hint").textContent=up?"Den Einladungscode bekommst du von der Person, die SkiView betreibt. Ohne gültigen Code hat dein Konto keinen Zugriff auf die Daten.":"Den Einladungscode brauchst du nur beim ersten Anmelden eines neuen Kontos.";
+  $("#serr").hidden=true;
+}
+$("#s_tab_in").onclick=()=>setMode("in");$("#s_tab_up").onclick=()=>setMode("up");
+$("#sync-btn").onclick=()=>{
+  const c=syncCfg||{};
+  $("#s_cfg").style.display=CONFIG.url?"none":"grid";
+  $("#s_url").value=c.url||CONFIG.url||"";$("#s_key").value=c.key||CONFIG.key||"";$("#s_mail").value=c.email||"";
+  $("#s_pw").value="";$("#s_name").value="";$("#s_code").value="";
+  $("#s_off").hidden=$("#s_now").hidden=!(syncCfg&&syncCfg.email);
+  setMode("in");sdlg.showModal();
+};
+$("#s_cancel").onclick=()=>sdlg.close();
+$("#s_now").onclick=async()=>{sdlg.close();await sync()};
+$("#s_off").onclick=async()=>{
+  try{if(sb)await sb.auth.signOut()}catch(e){}
+  localStorage.removeItem("skigebiete-sync");syncCfg=null;role=null;board=[];myId=null;
+  $("#me-st").textContent="";setSt("Sync: aus");initSb();sdlg.close();rerender();
+};
+$("#s_ok").onclick=async()=>{
+  const v=k=>$("#s_"+k).value.trim(),err=m=>{const p=$("#serr");p.textContent=m;p.hidden=false};
+  const url=CONFIG.url||v("url").replace(/\/+$/,""),key=CONFIG.key||v("key"),email=v("mail"),pw=$("#s_pw").value,code=v("code").toUpperCase(),name=v("name");
+  if(!/^https:\/\/.+/.test(url)||!key)return err("Projekt-URL (https://…) und öffentlicher Schlüssel fehlen.");
+  if(!email||!pw)return err("Bitte E-Mail und Passwort ausfüllen.");
+  if(mode==="up"){
+    if(name.length<2||name.length>30)return err("Der Anzeigename braucht 2 bis 30 Zeichen.");
+    if(!code)return err("Bitte den Einladungscode eingeben.");
+    if(pw.length<8)return err("Das Passwort braucht mindestens 8 Zeichen.");
+  }
+  syncCfg={url,key,email};initSb();
+  if(!sb)return err("Die Supabase-Bibliothek konnte nicht geladen werden. Internetverbindung prüfen.");
+  if(code)setPend({code,name});
+  const res=mode==="up"?await sb.auth.signUp({email,password:pw}):await sb.auth.signInWithPassword({email,password:pw});
+  if(res.error){setPend(null);initSb();return err((mode==="up"?"Registrierung":"Anmeldung")+" fehlgeschlagen: "+res.error.message)}
+  try{localStorage.setItem("skigebiete-sync",JSON.stringify(syncCfg))}catch(e){}
+  if(mode==="up"&&!res.data.session){
+    const p=$("#serr");p.textContent="Fast geschafft: Bestätige den Link in der E-Mail, die du bekommen hast. Danach melde dich hier mit E-Mail und Passwort an, dein Code wird dann automatisch eingelöst.";p.hidden=false;
+    return;
+  }
+  sdlg.close();await sync();
+};
+
+/* Einladungscodes (nur Admin) */
+const kdlg=$("#kdlg");
+async function loadCodes(){
+  const {data,error}=await sb.rpc("ski_list_codes");
+  $("#k_list").innerHTML=error?`<p class="err">${esc(error.message)}</p>`:(data&&data.length?`<div style="overflow-x:auto"><table><tr><th>Code</th><th>Rolle</th><th>Noch frei</th><th>Gültig bis</th></tr>${data.map(c=>`<tr><td><code>${esc(c.code)}</code></td><td>${c.role==="editor"?"Mitwirkend":"Nur ansehen"}</td><td>${c.uses_left}</td><td>${c.expires_at?new Date(c.expires_at).toLocaleDateString("de-DE"):"unbegrenzt"}</td></tr>`).join("")}</table></div>`:`<p style="color:var(--mute)">Keine offenen Codes.</p>`);
+}
+$("#codes-btn").onclick=()=>{$("#k_out").textContent="";$("#kerr").hidden=true;kdlg.showModal();loadCodes()};
+$("#k_close").onclick=()=>kdlg.close();
+$("#k_new").onclick=async()=>{
+  const {data,error}=await sb.rpc("ski_create_code",{p_role:$("#k_role").value,p_uses:+$("#k_uses").value||1,p_days:+$("#k_days").value||14});
+  if(error){const p=$("#kerr");p.textContent=error.message;p.hidden=false;return}
+  $("#kerr").hidden=true;$("#k_out").innerHTML=`Neuer Code: <b style="font-size:20px;letter-spacing:2px">${esc(data)}</b>`;loadCodes();
+};
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&sb&&!document.querySelector("dialog[open]"))sync()});
+initSb();if(sb)sync();
+
+renderLands();showOverview();
+</script>
+</body>
+</html>
