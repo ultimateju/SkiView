@@ -41,9 +41,12 @@ section{overflow:auto;padding:16px;min-width:0}
 .tabs{display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--line)}
 .tabs button{border:0;border-bottom:3px solid transparent;border-radius:0;background:none;padding:8px 14px}
 .tabs button[aria-selected=true]{border-bottom-color:var(--mid);font-weight:700}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,var(--camw,420px)),1fr));gap:14px}
 .cam{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
-.cam iframe{display:block;width:100%;aspect-ratio:16/10;border:0;background:#000}
+.cam .shot{display:block;background:#000}
+.cam .frame{position:relative;aspect-ratio:16/10;overflow:hidden;background:#000}
+.cam .frame iframe{position:absolute;left:0;top:0;width:1280px;height:800px;border:0;transform-origin:0 0}
+.mk{filter:drop-shadow(0 1px 2px rgba(0,0,0,.45))}
 .cam div{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px}
 .cam a,.link{color:var(--accent);text-decoration:none;font-weight:600}
 .cam a:hover,.link:hover{text-decoration:underline}
@@ -79,7 +82,7 @@ dialog input{padding:6px 8px;border:1px solid var(--line);border-radius:6px;back
   <button id="rank-btn">Rangliste</button>
   <button id="codes-btn" hidden>Einladungscodes</button>
   <button id="sync-btn">Konto</button>
-  <button id="gmap-btn">Webcam-Karte</button>
+  <button id="gmap-btn">Karte</button>
   <button id="fav-ov">Favoriten-Übersicht</button>
   <button id="add-area">Skigebiet hinzufügen</button>
   <button id="edit">Backup (JSON)</button>
@@ -100,10 +103,6 @@ dialog input{padding:6px 8px;border:1px solid var(--line);border-radius:6px;back
   <h3 style="margin-top:0">Konto</h3>
   <div class="tabs" style="margin-bottom:10px"><button id="s_tab_in" role="tab" aria-selected="true">Anmelden</button><button id="s_tab_up" role="tab" aria-selected="false">Registrieren</button></div>
   <div style="display:grid;gap:8px">
-    <div id="s_cfg" style="display:grid;gap:8px">
-      <input id="s_url" placeholder="Projekt-URL, https://xyz.supabase.co" aria-label="Projekt-URL">
-      <input id="s_key" placeholder="Öffentlicher Schlüssel (anon oder publishable key)" aria-label="Öffentlicher Schlüssel">
-    </div>
     <input id="s_name" placeholder="Anzeigename für die Rangliste (2 bis 30 Zeichen)" aria-label="Anzeigename" maxlength="30">
     <input id="s_mail" type="email" placeholder="E-Mail" aria-label="E-Mail">
     <input id="s_pw" type="password" placeholder="Passwort" aria-label="Passwort" autocomplete="current-password">
@@ -156,8 +155,8 @@ dialog input{padding:6px 8px;border:1px solid var(--line);border-radius:6px;back
   <h3 id="c_h" style="margin-top:0">Webcam hinzufügen</h3>
   <div style="display:grid;gap:8px">
     <input id="c_title" placeholder="Titel, z. B. Idalp" aria-label="Titel">
-    <input id="c_prov" placeholder="Anbieter, z. B. Panomax" aria-label="Anbieter">
-    <input id="c_url" placeholder="Webcam-URL (https://…), optional" aria-label="URL">
+    <input id="c_prov" list="provlist" placeholder="Anbieter, z. B. foto-webcam.eu" aria-label="Anbieter"><datalist id="provlist"><option value="foto-webcam.eu"><option value="Panomax"><option value="Bergfex"><option value="Offizielle Seite"></datalist>
+    <input id="c_url" placeholder="Webcam-Adresse (bei foto-webcam.eu genügt der Name, z. B. hochkoenig)" aria-label="Webcam-Adresse">
     <input id="c_loc" placeholder="Standort, z. B. Bergstation Idalp" aria-label="Standort">
     <input id="c_elev" type="number" placeholder="Höhe in m" aria-label="Höhe in Metern">
     <div style="display:flex;gap:8px"><input id="c_lat" placeholder="Breite, z. B. 47.0069" aria-label="Breitengrad"><input id="c_lon" placeholder="Länge, z. B. 10.3010" aria-label="Längengrad"></div>
@@ -192,6 +191,26 @@ window.addEventListener("error",function(e){
 /* HIER EINTRAGEN (gerade Anführungszeichen " verwenden, keine typografischen):
    Projekt-URL und öffentlicher Schlüssel von Supabase. Dann müssen andere Nutzer sie nicht eingeben. */
 window.SKIVIEW_CONFIG={url:"",key:""};
+
+/* RÄNGE (aufsteigend nach Pistenkilometern; Betreiberangaben, gerundet).
+   p = nötige Punkte, n = nötige Webcams, zu denen man beigetragen hat (nur beim ersten Rang). Hier kannst du alles anpassen. */
+window.SKIVIEW_RANKS=[
+{name:"Collenberg Halver",km:0,p:30,n:5},
+ {name:"Olpe Fahlenscheid",km:1,p:100},
+ {name:"Wilde Wiese",km:6,p:200},
+ {name:"Willingen",km:17,p:300},
+ {name:"Skikarusell Winterberg",km:28,p:500},
+ {name:"Oberstdorf/Kleinwalsertal",km:130,p:750},
+ {name:"Ischgl-Samnaun",km:238,p:1000},
+ {name:"Saalbach-Hinterglemm",km:270,p:1250},
+ {name:"SkiWelt Wilder Kaiser-Brixental",km:284,p:1750},
+ {name:"Ski Arlberg",km:305,p:2225},
+ {name:"Les 4 Vallées",km:412,p:2900},
+ {name:"Les Portes du Soleil",km:580,p:3750},
+ {name:"Les 3 Vallées",km:600,p:4500},
+ {name:"Ski amadé",km:760,p:6000},
+ {name:"Dolomiti Superski",km:1200,p:7500}
+];
 </script>
 <script>
 const CONFIG=Object.assign({url:"",key:""},window.SKIVIEW_CONFIG||{});
@@ -269,18 +288,42 @@ function renderView(){
   const v=$("#view");
   if(!cur){v.innerHTML=`<div class="empty">Wähle links ein Skigebiet aus.</div>`;return}
   v.innerHTML=`<div class="top"><h2>${esc(cur.name)}</h2><button data-star aria-pressed="${favs.includes(cur.id)}">${favs.includes(cur.id)?"★ Favorit":"☆ Merken"}</button>${ro()?"":"<button data-aedit>Gebiet bearbeiten</button>"}<span>${esc(cur.land)}${cur.elev?` · ${esc(cur.elev)} m`:""}</span></div>
-  <div class="tabs" role="tablist">${[["cams","Webcams"],["cmap","Webcam-Karte"],["map","Pistenplan"],["wx","Wetter"]].map(([k,t])=>`<button role="tab" data-t="${k}" aria-selected="${tab===k}">${t}</button>`).join("")}</div>
+  <div class="tabs" role="tablist">${[["cams","Webcams"],["cmap","Karte"],["map","Pistenplan"],["wx","Wetter"]].map(([k,t])=>`<button role="tab" data-t="${k}" aria-selected="${tab===k}">${t}</button>`).join("")}</div>
   <div id="body"></div>`;
   ({cams:showCams,cmap:showCamMap,map:showMap,wx:showWx})[tab]();
 }
 function provLinks(a){const n=encodeURIComponent(a.name),g=x=>`https://www.google.com/search?q=${n}+${x}`;return [["foto-webcam.eu",g("webcam+site:foto-webcam.eu")],["Panomax",g("webcam+site:panomax.com")],["Bergfex",g("webcam+site:bergfex.at")],["Offizielle Seite",g("Skigebiet+Webcam")]];}
 const camMeta=w=>[w.standort,w.elev!=null&&w.elev!==""?`${w.elev} m`:""].filter(Boolean).join(" · ");
+const fotoSlug=w=>{
+  const u=String(w.url||"").trim();
+  const m=u.match(/foto-webcam\.eu\/webcam\/([^\/?#\s]+)/i);if(m)return m[1];
+  if(/foto-?webcam/i.test(w.provider||"")&&/^[a-z0-9._-]+$/i.test(u))return u;
+  return null;
+};
+const fotoPage=sl=>`https://www.foto-webcam.eu/webcam/${sl}/`;
+const fotoImg=sl=>`https://www.foto-webcam.eu/webcam/${sl}/current/720.jpg`;
+let camw=420;try{camw=+localStorage.getItem("skiview-camw")||420}catch(e){}
+document.documentElement.style.setProperty("--camw",camw+"px");
+function fitFrames(){document.querySelectorAll(".frame").forEach(f=>{const i=f.firstElementChild;if(i)i.style.transform=`scale(${f.clientWidth/1280})`})}
+window.addEventListener("resize",fitFrames);
+$("#view").addEventListener("input",e=>{
+  if(e.target.id!=="camw")return;
+  camw=+e.target.value;document.documentElement.style.setProperty("--camw",camw+"px");
+  try{localStorage.setItem("skiview-camw",camw)}catch(x){}
+  fitFrames();
+});
+function camMedia(w){
+  const sl=fotoSlug(w);
+  if(sl)return `<a class="shot" href="${fotoPage(sl)}" target="_blank" rel="noopener"><img loading="lazy" alt="${esc(w.title)}" src="${fotoImg(sl)}" style="display:block;width:100%;height:auto"></a>`;
+  return w.url?`<div class="frame"><iframe loading="lazy" src="${esc(w.url)}" title="${esc(w.title)}" referrerpolicy="no-referrer"></iframe></div>`:"";
+}
 function showCams(){
   const c=cur.webcams||[];
-  const links=`<p>Webcams suchen bei: ${provLinks(cur).map(([t,u])=>`<a class="link" style="margin-right:14px" href="${esc(u)}" target="_blank" rel="noopener">${t}</a>`).join("")}${ro()?"":`<button class="primary" data-add>Webcam hinzufügen</button>`}</p>`;
-  $("#body").innerHTML=links+(c.length?`<div class="grid">${c.map((w,i)=>`<div class="cam">${w.url?`<iframe loading="lazy" src="${esc(w.url)}" title="${esc(w.title)}" referrerpolicy="no-referrer"></iframe>`:""}<div><span>${w.provider?esc(w.provider)+": ":""}${esc(w.title)}</span>${w.url?`<a href="${esc(w.url)}" target="_blank" rel="noopener">Im neuen Tab öffnen</a>`:""}</div><p class="meta"><span>${esc(camMeta(w))||"Standort und Höhe nicht angegeben"}</span>${ro()?"":`<span><button data-edit="${i}">Bearbeiten</button> <button data-del="${i}">Entfernen</button></span>`}</p></div>`).join("")}</div>
-  <p style="color:var(--mute);font-size:13px">Bleibt ein Feld leer, erlaubt der Anbieter keine Einbettung. Dann den Link rechts oben in der Kachel nutzen.</p>`
+  const links=`<p style="display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center">Webcams suchen bei: ${provLinks(cur).map(([t,u])=>`<a class="link" href="${esc(u)}" target="_blank" rel="noopener">${t}</a>`).join("")}<label style="margin-left:auto">Größe <input type="range" id="camw" min="200" max="900" step="20" value="${camw}" style="width:140px;vertical-align:middle"></label>${ro()?"":`<button class="primary" data-add>Webcam hinzufügen</button>`}</p>`;
+  $("#body").innerHTML=links+(c.length?`<div class="grid">${c.map((w,i)=>{const sl=fotoSlug(w),href=sl?fotoPage(sl):w.url;return `<div class="cam">${camMedia(w)}<div><span>${w.provider?esc(w.provider)+": ":""}${esc(w.title)}</span>${href?`<a href="${esc(href)}" target="_blank" rel="noopener">Im neuen Tab öffnen</a>`:""}</div><p class="meta"><span>${esc(camMeta(w))||"Standort und Höhe nicht angegeben"}</span>${ro()?"":`<span><button data-edit="${i}">Bearbeiten</button> <button data-del="${i}">Entfernen</button></span>`}</p></div>`}).join("")}</div>
+  <p style="color:var(--mute);font-size:13px">Bleibt ein Feld leer, erlaubt der Anbieter keine Einbettung. Dann den Link „Im neuen Tab öffnen“ nutzen. Mit dem Regler „Größe“ stellst du die Anzeige ein.</p>`
   :`<div class="empty">Noch keine Webcam hinterlegt. Über die Suchlinks eine Seite finden und mit „Webcam hinzufügen“ eintragen.</div>`);
+  fitFrames();
 }
 let map=null;
 function initMap(host){
@@ -288,25 +331,32 @@ function initMap(host){
   host.innerHTML=`<div class="cm"></div>`;
   if(map){map.remove();map=null}
   map=L.map(host.firstChild);
-  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:"© OpenStreetMap-Mitwirkende"}).addTo(map);
+  const osm=L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:"© OpenStreetMap-Mitwirkende"}).addTo(map);
+  const topo=L.tileLayer("https://tile.opentopomap.org/{z}/{x}/{y}.png",{maxZoom:17,attribution:"© OpenStreetMap-Mitwirkende, SRTM | © OpenTopoMap (CC-BY-SA)"});
+  const pistes=L.tileLayer("https://tiles.opensnowmap.org/pistes/{z}/{x}/{y}.png",{maxZoom:18,attribution:"Pisten © OpenSnowMap.org"}).addTo(map);
+  L.control.layers({"Straßenkarte":osm,"Topografisch":topo},{"Pisten und Lifte":pistes}).addTo(map);
   return map;
 }
 function openArea(n){cur=areas.find(a=>a.id===n);tab="cams";renderList();renderView();}
 const openLink=a=>`<a href="#" onclick="openArea(${esc(JSON.stringify(a.id))});return false">Gebiet öffnen</a>`;
-const camPop=(w,a)=>`<b>${esc(w.title)}</b><br>${w.provider?esc(w.provider)+"<br>":""}${esc(camMeta(w))}${w.lat==null||w.lon==null?"<br><i>Position ungefähr (Gebietszentrum)</i>":""}${w.url?`<br><a href="${esc(w.url)}" target="_blank" rel="noopener">Webcam öffnen</a>`:""}<br>${openLink(a)}`;
+const mkSvg=(bg,inner)=>`<svg viewBox="0 0 32 32" width="32" height="32"><circle cx="16" cy="16" r="14" fill="${bg}" stroke="#fff" stroke-width="2"/>${inner}</svg>`;
+const mkIcon=html=>L.divIcon({className:"mk",html,iconSize:[32,32],iconAnchor:[16,16],popupAnchor:[0,-14]});
+const camIcon=()=>mkIcon(mkSvg("#3a1772",`<rect x="7" y="11" width="12" height="10" rx="2" fill="#fff"/><circle cx="13" cy="16" r="2.6" fill="#3a1772"/><path d="M20 14.5l5-2.5v8l-5-2.5z" fill="#fff"/>`));
+const areaIcon=()=>mkIcon(mkSvg("#f2cd5d",`<path d="M6 22l7-11 4 6 3-4 6 9z" fill="#3a1772"/>`));
+const camPop=(w,a)=>{const sl=fotoSlug(w);return `<b>${esc(w.title)}</b><br>${w.provider?esc(w.provider)+"<br>":""}${esc(camMeta(w))}${w.lat==null||w.lon==null?"<br><i>Position ungefähr (Gebietszentrum)</i>":""}${sl?`<a href="${fotoPage(sl)}" target="_blank" rel="noopener"><img src="${fotoImg(sl)}" alt="${esc(w.title)}" style="display:block;width:240px;max-width:100%;margin:6px 0"></a>`:""}${w.url?`<br><a href="${esc(sl?fotoPage(sl):w.url)}" target="_blank" rel="noopener">Webcam öffnen</a>`:""}<br>${openLink(a)}`};
 function plot(m,list){
   const pts=[];
   list.forEach(a=>{
-    const cams=a.webcams||[];
-    if(!cams.length){L.circleMarker([a.lat,a.lon],{radius:6}).addTo(m).bindPopup(`<b>${esc(a.name)}</b><br>Keine Webcam hinterlegt<br>${openLink(a)}`);pts.push([a.lat,a.lon]);return}
-    cams.forEach(w=>{const pos=typeof w.lat==="number"&&typeof w.lon==="number"?[w.lat,w.lon]:[a.lat,a.lon];L.marker(pos).addTo(m).bindPopup(camPop(w,a));pts.push(pos)});
+    L.marker([a.lat,a.lon],{icon:areaIcon()}).addTo(m).bindPopup(`<b>${esc(a.name)}</b><br>Skigebiet${a.elev?", "+esc(a.elev)+" m":""}<br>${(a.webcams||[]).length} Webcam(s)<br>${openLink(a)}`);
+    pts.push([a.lat,a.lon]);
+    (a.webcams||[]).forEach(w=>{const pos=typeof w.lat==="number"&&typeof w.lon==="number"?[w.lat,w.lon]:[a.lat,a.lon];L.marker(pos,{icon:camIcon()}).addTo(m).bindPopup(camPop(w,a),{minWidth:250});pts.push(pos)});
   });
   if(pts.length===1)m.setView(pts[0],12);else m.fitBounds(pts,{padding:[30,30]});
 }
 function showCamMap(){const m=initMap($("#body"));if(m)plot(m,[cur]);}
 function showGlobalMap(){
   cur=null;renderList();
-  $("#view").innerHTML=`<div class="top"><h2>Webcam-Karte</h2><span>Alle Skigebiete. Webcams ohne eigene Position liegen am Gebietszentrum.</span></div><div id="gm"></div>`;
+  $("#view").innerHTML=`<div class="top"><h2>Karte</h2><span>Skigebiete und Webcams mit Pistenlayer. Webcams ohne eigene Position liegen am Gebietszentrum.</span></div><div id="gm"></div>`;
   const m=initMap($("#gm"));if(m)plot(m,areas);
 }
 function showMap(){
@@ -356,7 +406,7 @@ $("#c_cancel").onclick=()=>cdlg.close();
 $("#c_save").onclick=()=>{
   const v=k=>$("#c_"+k).value.trim(),err=m=>{const p=$("#cerr");p.textContent=m;p.hidden=false};
   if(!v("title"))return err("Bitte einen Titel angeben.");
-  if(v("url")&&!/^https?:\/\//.test(v("url")))return err("Die URL muss mit http:// oder https:// beginnen.");
+  if(v("url")&&!/^https?:\/\//.test(v("url"))&&!/foto-?webcam/i.test(v("prov")))return err("Die Adresse muss mit http:// oder https:// beginnen.");
   const w={title:v("title"),id:editC==null?newId("c"):cur.webcams[editC].id,u:Date.now()};
   if(v("prov"))w.provider=v("prov");
   if(v("url"))w.url=v("url");
@@ -366,6 +416,11 @@ $("#c_save").onclick=()=>{
     const la=Number(v("lat").replace(",",".")),lo=Number(v("lon").replace(",","."));
     if(!v("lat")||!v("lon")||!isFinite(la)||!isFinite(lo)||Math.abs(la)>90||Math.abs(lo)>180)return err("Breite und Länge müssen beide als Zahl angegeben werden, z. B. 47.0069 und 10.3010.");
     w.lat=la;w.lon=lo;
+  }
+  if(/foto-?webcam/i.test(w.provider||"")||/foto-webcam\.eu/i.test(w.url||"")){
+    const sl=fotoSlug(w);
+    if(!sl)return err("Bei foto-webcam.eu bitte die Adresse (https://www.foto-webcam.eu/webcam/NAME/) oder nur den Namen angeben.");
+    w.url=fotoPage(sl);if(!w.provider)w.provider="foto-webcam.eu";
   }
   cur.webcams=cur.webcams||[];if(editC==null)cur.webcams.push(w);else cur.webcams[editC]=w;persist();cdlg.close();showCams();
 };
@@ -599,51 +654,25 @@ async function getMe(){
   return {role:r&&["admin","editor","viewer"].includes(r.role)?r.role:"none",name:r?r.name:null};
 }
 
-/* Ränge: Skigebiete der Alpen, aufsteigend nach Pistenkilometern (Betreiberangaben, gerundet, Quellen weichen voneinander ab).
-   p = nötige Punkte, n = nötige Einträge (nur beim ersten Rang). Werte lassen sich hier anpassen. */
-const RANKS=[
- {name:"Collenberg Halver",km:0,p:30,n:5},
- {name:"Olpe Fahlenscheid",km:1,p:100},
- {name:"Wilde Wiese",km:6,p:200},
- {name:"Willingen",km:17,p:300},
- {name:"Skikarusell Winterberg",km:28,p:500},
- {name:"Oberstdorf/Kleinwalsertal",km:130,p:750},
- {name:"Ischgl-Samnaun",km:238,p:1000},
- {name:"Saalbach-Hinterglemm",km:270,p:1250},
- {name:"SkiWelt Wilder Kaiser-Brixental",km:284,p:1750},
- {name:"Ski Arlberg",km:305,p:2225},
- {name:"Les 4 Vallées",km:412,p:2900},
- {name:"Les Portes du Soleil",km:580,p:3750},
- {name:"Les 3 Vallées",km:600,p:4500},
- {name:"Ski amadé",km:760,p:6000},
- {name:"Dolomiti Superski",km:1200,p:7500}
-];
+const RANKS=window.SKIVIEW_RANKS||[];
 const rankOf=(p,n)=>{let r=-1;for(let i=0;i<RANKS.length;i++){if(p>=RANKS[i].p&&n>=(RANKS[i].n||0))r=i;else break}return r};
 
 async function loadScores(){
   const {data,error}=await sb.rpc("ski_leaderboard");if(error)throw error;
   board=data||[];
   const me=board.find(x=>x.user_id===myId);
-  if(me){const r=rankOf(+me.points,+me.entries);$("#me-st").textContent=`${r>=0?RANKS[r].name:"Einsteiger"} · ${me.points} Pkt.`}
+  if(me){const r=rankOf(+me.points,+me.entries);$("#me-st").textContent=`${me.name} · ${r>=0?RANKS[r].name:"Einsteiger"} · ${me.points} Pkt.`}
   else $("#me-st").textContent="";
 }
 function showRank(){
   cur=null;renderList();const v=$("#view");
   if(!sb||!role||role==="none"){v.innerHTML=`<div class="empty">Melde dich über „Konto“ an, um Punkte zu sammeln und die Rangliste zu sehen.</div>`;return}
-  const me=board.find(x=>x.user_id===myId),pts=me?+me.points:0,ent=me?+me.entries:0,r=rankOf(pts,ent),nx=RANKS[r+1];
-  const bar=(a,b)=>`<div style="background:var(--line);border-radius:6px;height:8px;margin:4px 0 10px"><div style="width:${Math.min(100,Math.round(a/b*100))}%;background:var(--mid);height:8px;border-radius:6px"></div></div>`;
-  const cr=r>=0?`<b>${esc(RANKS[r].name)}</b> (${RANKS[r].km} Pistenkilometer)`:"<b>Noch ohne Rang</b>";
-  const next=nx?`Nächster Rang: <b>${esc(nx.name)}</b> (${nx.km} km)<br>${Math.min(pts,nx.p)} von ${nx.p} Punkten${bar(pts,nx.p)}${nx.n?`${Math.min(ent,nx.n)} von ${nx.n} Einträgen${bar(ent,nx.n)}`:""}`:"Höchster Rang erreicht.";
-  const rows=board.map((x,i)=>{const k=rankOf(+x.points,+x.entries);return `<tr class="${x.user_id===myId?"me":""}"><td>${i+1}</td><td>${esc(x.name)}</td><td>${k>=0?esc(RANKS[k].name):"–"}</td><td>${x.points}</td><td>${x.entries}</td></tr>`}).join("");
-  v.innerHTML=`<div class="top"><h2>Rangliste</h2><span>Punkte gibt es für neue Webcams und Informationen dazu</span></div>
-  <div class="now" style="display:block"><div>Dein Rang: ${cr}</div><div style="margin:6px 0 8px">${pts} Punkte, ${ent} Einträge${ro()?" (Betrachter sammeln keine Punkte)":""}</div><div>${next}</div></div>
-  <h3>Bestenliste</h3>
-  <div style="overflow-x:auto"><table><tr><th>#</th><th>Name</th><th>Rang</th><th>Punkte</th><th>Einträge</th></tr>${rows||`<tr><td colspan="5">Noch keine Einträge.</td></tr>`}</table></div>
-  <h3>Die Ränge</h3>
-  <p style="color:var(--mute);margin-top:0">Von kleinen zu großen Skigebieten der Alpen. Der erste Rang braucht mindestens 5 Einträge, danach zählen nur noch Punkte.</p>
-  <div style="overflow-x:auto"><table><tr><th>Rang</th><th>Skigebiet</th><th>Pistenkm</th><th>Punkte ab</th></tr>${RANKS.map((x,i)=>`<tr class="${i===r?"me":""}"><td>${i+1}</td><td>${esc(x.name)}</td><td>ca. ${x.km}</td><td>${x.p}</td></tr>`).join("")}</table></div>
-  <h3>So gibt es Punkte</h3>
-  <p style="margin-top:0">Neue Webcam 3, neues Skigebiet 3. Pro Webcam zusätzlich: Webcam-URL 2, Position 2, Anbieter 1, Standort 1, Höhe 1. Jede Information zählt pro Webcam einmal, auch wenn du sie später nachträgst. Jeder Eintrag zählt als ein Eintrag. Punkte zählen nur, solange der Eintrag existiert.</p>`;
+  const me=board.find(x=>x.user_id===myId),pts=me?+me.points:0,cams=me?+me.entries:0,r=rankOf(pts,cams);
+  const rows=board.map((x,i)=>{const k=rankOf(+x.points,+x.entries);return `<tr class="${x.user_id===myId?"me":""}"><td>${i+1}</td><td>${esc(x.name)}</td><td>${k>=0?esc(RANKS[k].name):"–"}</td><td>${x.points}</td></tr>`}).join("");
+  v.innerHTML=`<div class="top"><h2>Rangliste</h2><span>Punkte gibt es für Webcams und ihre Informationen</span></div>
+  <div class="now" style="display:block"><div>${me?esc(me.name)+": ":""}${r>=0?`<b>${esc(RANKS[r].name)}</b>`:"<b>Noch ohne Rang</b>"}</div><div style="margin-top:6px">${pts} Punkte${ro()?" (Betrachter sammeln keine Punkte)":""}</div></div>
+  <div style="overflow-x:auto"><table><tr><th>#</th><th>Name</th><th>Rang</th><th>Punkte</th></tr>${rows||`<tr><td colspan="4">Noch keine Einträge.</td></tr>`}</table></div>
+  <p style="color:var(--mute)">Eine vollständige Webcam bringt 5 Punkte: Webcam-Adresse, Anbieter, Standort, Höhe und Position zählen je 1 Punkt. Fehlt eine Information, gibt es 1 Punkt weniger. Die Punkte bekommt, wer eine Information zuerst einträgt.</p>`;
 }
 $("#rank-btn").onclick=showRank;
 
@@ -658,8 +687,7 @@ function setMode(m){
 $("#s_tab_in").onclick=()=>setMode("in");$("#s_tab_up").onclick=()=>setMode("up");
 $("#sync-btn").onclick=()=>{
   const c=syncCfg||{};
-  $("#s_cfg").style.display=CONFIG.url?"none":"grid";
-  $("#s_url").value=c.url||CONFIG.url||"";$("#s_key").value=c.key||CONFIG.key||"";$("#s_mail").value=c.email||"";
+  $("#s_mail").value=c.email||"";
   $("#s_pw").value="";$("#s_name").value="";$("#s_code").value="";
   $("#s_off").hidden=$("#s_now").hidden=!(syncCfg&&syncCfg.email);
   setMode("in");sdlg.showModal();
@@ -673,8 +701,8 @@ $("#s_off").onclick=async()=>{
 };
 $("#s_ok").onclick=async()=>{
   const v=k=>$("#s_"+k).value.trim(),err=m=>{const p=$("#serr");p.textContent=m;p.hidden=false};
-  const url=CONFIG.url||v("url").replace(/\/+$/,""),key=CONFIG.key||v("key"),email=v("mail"),pw=$("#s_pw").value,code=v("code").toUpperCase(),name=v("name");
-  if(!/^https:\/\/.+/.test(url)||!key)return err("Projekt-URL (https://…) und öffentlicher Schlüssel fehlen.");
+  const url=CONFIG.url,key=CONFIG.key,email=v("mail"),pw=$("#s_pw").value,code=v("code").toUpperCase(),name=v("name");
+  if(!/^https:\/\/.+/.test(url)||!key)return err("Die App ist noch nicht mit der Datenbank verbunden. Der Betreiber muss URL und Schlüssel in der Datei index.html eintragen.");
   if(!email||!pw)return err("Bitte E-Mail und Passwort ausfüllen.");
   if(mode==="up"){
     if(name.length<2||name.length>30)return err("Der Anzeigename braucht 2 bis 30 Zeichen.");
