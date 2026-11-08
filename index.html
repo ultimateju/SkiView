@@ -4,24 +4,31 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SkiView</title>
-<meta name="theme-color" content="#3a1772">
+<meta name="theme-color" content="#f1edfb">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("skiview-theme")||"light"}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600&display=swap" rel="stylesheet">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2064%2064%22%3E%3Cdefs%3E%3CclipPath%20id=%22fv%22%3E%3Cpath%20d=%22M17%2026Q32%2013%2047%2026Q32%2039%2017%2026Z%22/%3E%3C/clipPath%3E%3C/defs%3E%3Cellipse%20cx=%2232%22%20cy=%2259%22%20rx=%2217%22%20ry=%223.5%22%20fill=%22%237d80da%22/%3E%3Cpath%20d=%22M26%2057L28.5%2044h7L38%2057z%22%20fill=%22%23b0a3d4%22/%3E%3Ccircle%20cx=%2232%22%20cy=%2226%22%20r=%2222%22%20fill=%22%23b0a3d4%22/%3E%3Ccircle%20cx=%2232%22%20cy=%2226%22%20r=%2217%22%20fill=%22%233a1772%22/%3E%3Cpath%20d=%22M17%2026Q32%2013%2047%2026Q32%2039%2017%2026Z%22%20fill=%22%23fff%22/%3E%3Cg%20clip-path=%22url%28%23fv%29%22%3E%3Ccircle%20cx=%2232%22%20cy=%2226%22%20r=%227.5%22%20fill=%22%23f2cd5d%22/%3E%3Ccircle%20cx=%2232%22%20cy=%2226%22%20r=%223.8%22%20fill=%22%233a1772%22/%3E%3C/g%3E%3Ccircle%20cx=%2229.8%22%20cy=%2223.6%22%20r=%221.5%22%20fill=%22%23fff%22/%3E%3Ccircle%20cx=%2250%22%20cy=%229%22%20r=%222.6%22%20fill=%22%23f2cd5d%22/%3E%3C/svg%3E">
 <style>
 :root{
  /* Palette: #65655e #7d80da #b0a3d4 #3a1772 #f2cd5d */
- --bg:#f3f1f9;--panel:#fff;--ink:#2a1a47;--mute:#65655e;--line:#d9d3ea;--sel:#ebe7f5;
+ --bg:#f8f6fd;--panel:#fff;--ink:#2a1a47;--mute:#65655e;--line:#e3def2;--sel:#f0ebff;
  --accent:#3a1772;--accent-ink:#fff;--mid:#7d80da;--hi:#f2cd5d;
- --head:#3a1772;--head-mute:#b0a3d4}
-@media (prefers-color-scheme:dark){:root{--bg:#1b1330;--panel:#251b40;--ink:#efeaf9;--mute:#b0a3d4;--line:#3b2f5e;--sel:#33285a;--accent:#f2cd5d;--accent-ink:#3a1772;--head:#2b1259}}
+ --head:#f1edfb;--head-ink:#3a1772;--head-mute:#65655e;--head-line:#b0a3d4;--title:#3a1772}
+:root[data-theme=dark]{--bg:#1e1c29;--panel:#2a2739;--ink:#efeaf9;--mute:#b0a3d4;--line:#3d3a55;--sel:#38345a;--accent:#f2cd5d;--accent-ink:#3a1772;--head:#2f2b45;--head-ink:#fff;--head-mute:#b0a3d4;--head-line:rgba(255,255,255,.4);--title:#f2cd5d}
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
 body{background:var(--bg);color:var(--ink);font:15px/1.5 "Avenir Next","Segoe UI",system-ui,sans-serif;display:flex;flex-direction:column}
-header{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:center;padding:12px 16px;background:var(--head);color:#fff;border-bottom:3px solid var(--hi)}
-header button{background:transparent;color:#fff;border-color:rgba(255,255,255,.4)}
-header button:hover{border-color:var(--hi)}
-header button:focus-visible{outline-color:var(--hi)}
-header h1{font-size:20px;margin:0;flex:1;font-weight:800;color:var(--hi);letter-spacing:.5px}
+header{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:center;padding:10px 16px;background:var(--head);color:var(--head-ink);border-bottom:3px solid var(--hi)}
+header button{background:var(--panel);color:var(--head-ink);border-color:var(--head-line)}
+:root[data-theme=dark] header button{background:transparent}
+header button:hover{border-color:var(--mid)}
+header button:focus-visible{outline-color:var(--mid)}
+header h1{font:600 26px/1 "Fredoka","Trebuchet MS",system-ui,sans-serif;margin:0;flex:0 0 auto;color:var(--title);letter-spacing:.3px}
+#menu-btn{display:none}
+.hnav{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;flex:1;justify-content:flex-end}
 button,select,input,textarea{font:inherit;color:inherit}
+input[type=range],input[type=checkbox]{accent-color:var(--mid)}
 button{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 12px;cursor:pointer}
 button:hover{border-color:var(--mid)}
 button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
@@ -36,10 +43,10 @@ aside{background:var(--panel);border-right:1px solid var(--line);display:flex;fl
 #list small{color:var(--mute)}
 section{overflow:auto;padding:16px;min-width:0}
 .top{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px;margin-bottom:12px}
-.top h2{margin:0;font-size:24px}
+.top h2{margin:0;font-size:26px;font-family:"Fredoka","Trebuchet MS",system-ui,sans-serif;font-weight:600}
 .top span{color:var(--mute)}
-.tabs{display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--line)}
-.tabs button{border:0;border-bottom:3px solid transparent;border-radius:0;background:none;padding:8px 14px}
+.tabs{display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{white-space:nowrap;border:0;border-bottom:3px solid transparent;border-radius:0;background:none;padding:8px 14px}
 .tabs button[aria-selected=true]{border-bottom-color:var(--mid);font-weight:700}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,var(--camw,420px)),1fr));gap:14px}
 .cam{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
@@ -47,6 +54,9 @@ section{overflow:auto;padding:16px;min-width:0}
 .cam .frame{position:relative;aspect-ratio:16/10;overflow:hidden;background:#000}
 .cam .frame iframe{position:absolute;left:0;top:0;width:1280px;height:800px;border:0;transform-origin:0 0}
 .mk{filter:drop-shadow(0 1px 2px rgba(0,0,0,.45))}
+.fin{padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);width:100%}
+.badge{display:inline-block;padding:1px 9px;border-radius:10px;font-size:12px;font-weight:600;background:var(--sel);color:var(--accent);margin-right:6px}
+.badge.bug{background:var(--hi);color:#3a1772}
 .cam div{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px}
 .cam a,.link{color:var(--accent);text-decoration:none;font-weight:600}
 .cam a:hover,.link:hover{text-decoration:underline}
@@ -62,7 +72,21 @@ dialog{width:min(720px,94vw);background:var(--panel);color:var(--ink);border:1px
 dialog::backdrop{background:rgba(0,0,0,.5)}
 textarea{width:100%;height:50vh;font:13px/1.45 ui-monospace,Menlo,Consolas,monospace;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px}
 .row{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
-@media (max-width:760px){main{grid-template-columns:1fr;grid-template-rows:auto 1fr}aside{border-right:0;border-bottom:1px solid var(--line);max-height:34vh}.grid{grid-template-columns:1fr}}
+#list-toggle{display:none}
+@media (max-width:760px){
+ header{padding:8px 12px}
+ header h1{font-size:22px}
+ #menu-btn{display:inline-block;margin-left:auto}
+ .hnav{display:none;width:100%;flex:none;justify-content:flex-start}
+ header.open .hnav{display:flex}
+ main{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+ aside{border-right:0;border-bottom:1px solid var(--line);max-height:46vh}
+ #list-toggle{display:block;width:100%;text-align:left;border:0;border-radius:0;background:var(--panel);padding:10px 14px;font-weight:600}
+ aside.collapsed .filters,aside.collapsed label,aside.collapsed #list{display:none!important}
+ section{padding:10px}
+ .top h2{font-size:22px}
+ .grid{grid-template-columns:1fr}
+}
 table{width:100%;border-collapse:collapse}th,td{padding:6px 10px;border-bottom:1px solid var(--line);text-align:left}tr.me{background:var(--sel)}
 .cm{height:68vh;min-height:360px;border:1px solid var(--line);border-radius:8px;z-index:0}
 #gm .cm{height:calc(100vh - 190px)}
@@ -77,8 +101,10 @@ dialog input{padding:6px 8px;border:1px solid var(--line);border-radius:6px;back
 <body>
 <header>
   <h1 style="display:flex;align-items:center;gap:10px"><svg viewBox="0 0 64 64" width="40" height="40" role="img" aria-label="SkiView-Logo: Webcam mit Auge"><defs><clipPath id="ev"><path d="M17 26Q32 13 47 26Q32 39 17 26Z"/></clipPath></defs><ellipse cx="32" cy="59" rx="17" ry="3.5" fill="#7d80da"/><path d="M26 57L28.5 44h7L38 57z" fill="#b0a3d4"/><circle cx="32" cy="26" r="22" fill="#b0a3d4"/><circle cx="32" cy="26" r="17" fill="#3a1772"/><path d="M17 26Q32 13 47 26Q32 39 17 26Z" fill="#fff"/><g clip-path="url(#ev)"><circle cx="32" cy="26" r="7.5" fill="#f2cd5d"/><circle cx="32" cy="26" r="3.8" fill="#3a1772"/></g><circle cx="29.8" cy="23.6" r="1.5" fill="#fff"/><circle cx="50" cy="9" r="2.6" fill="#f2cd5d"/></svg>SkiView</h1>
+  <button id="menu-btn" aria-expanded="false" aria-controls="hnav">☰ Menü</button>
+  <div class="hnav" id="hnav">
   <span id="sync-st" style="font-size:12px;color:var(--head-mute)">Sync: aus</span>
-  <span id="me-st" style="font-size:12px;color:var(--hi)"></span>
+  <span id="me-st" style="font-size:13px;font-weight:600;color:var(--accent)"></span>
   <button id="rank-btn">Rangliste</button>
   <button id="codes-btn" hidden>Einladungscodes</button>
   <button id="sync-btn">Konto</button>
@@ -86,9 +112,13 @@ dialog input{padding:6px 8px;border:1px solid var(--line);border-radius:6px;back
   <button id="fav-ov">Favoriten-Übersicht</button>
   <button id="add-area">Skigebiet hinzufügen</button>
   <button id="edit">Backup (JSON)</button>
+  <button id="fb-btn">Feedback</button>
+  <button id="theme-btn">Dunkel</button>
+  </div>
 </header>
 <main>
   <aside>
+    <button id="list-toggle" aria-expanded="false">Skigebiete</button>
     <div class="filters">
       <input id="q" type="search" placeholder="Suchen" aria-label="Skigebiet suchen">
       <select id="land" aria-label="Land filtern"></select>
@@ -184,7 +214,8 @@ dialog input{padding:6px 8px;border:1px solid var(--line);border-radius:6px;back
 window.addEventListener("error",function(e){
   var b=document.getElementById("errbar");
   if(!b){b=document.createElement("div");b.id="errbar";b.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:99999;background:#f2cd5d;color:#3a1772;padding:10px 14px;font:14px system-ui,sans-serif;white-space:pre-wrap";(document.body||document.documentElement).appendChild(b)}
-  b.textContent="SkiView-Fehler: "+(e.message||"unbekannt")+(e.lineno?" (Zeile "+e.lineno+")":"");
+  window.__lastErr=(e.message||"unbekannt")+(e.lineno?" (Zeile "+e.lineno+")":"");
+  b.textContent="SkiView-Fehler: "+window.__lastErr;
 });
 </script>
 <script>
@@ -195,7 +226,7 @@ window.SKIVIEW_CONFIG={url:"https://tocnntscirqpakifntaw.supabase.co",key:"sb_pu
 /* RÄNGE (aufsteigend nach Pistenkilometern; Betreiberangaben, gerundet).
    p = nötige Punkte, n = nötige Webcams, zu denen man beigetragen hat (nur beim ersten Rang). Hier kannst du alles anpassen. */
 window.SKIVIEW_RANKS=[
-{name:"Collenberg Halver",km:0,p:30,n:5},
+ {name:"Collenberg Halver",km:0,p:30,n:5},
  {name:"Olpe Fahlenscheid",km:1,p:100},
  {name:"Wilde Wiese",km:6,p:200},
  {name:"Willingen",km:17,p:300},
@@ -247,6 +278,7 @@ let areas=load(), favs=loadFavs(), cur=null, tab="cams";
 let meta=(()=>{try{return JSON.parse(localStorage.getItem("skigebiete-meta"))||{}}catch(e){return {}}})();
 let tombs=(()=>{try{return JSON.parse(localStorage.getItem("skigebiete-tomb"))||[]}catch(e){return []}})();
 let role=null;
+let special=null,lastArea="";
 const saveMeta=()=>{try{localStorage.setItem("skigebiete-meta",JSON.stringify(meta))}catch(e){}};
 const saveTombs=()=>{try{localStorage.setItem("skigebiete-tomb",JSON.stringify(tombs))}catch(e){}};
 const saveLocal=()=>{try{localStorage.setItem(KEY,JSON.stringify(areas));localStorage.setItem(FKEY,JSON.stringify(favs))}catch(e){}};
@@ -279,12 +311,14 @@ function renderList(){
   const fo=$("#fav").checked;
   const rows=areas.filter(a=>(!l||a.land===l)&&(!fo||favs.includes(a.id))&&a.name.toLowerCase().includes(q)).sort((x,y)=>favs.includes(y.id)-favs.includes(x.id)||x.name.localeCompare(y.name,"de"));
   $("#list").innerHTML=rows.map(a=>`<li><button data-n="${esc(a.id)}" aria-current="${!!cur&&cur.id===a.id}"><span>${favs.includes(a.id)?"★ ":""}${esc(a.name)}</span><small>${esc(a.land)}</small></button></li>`).join("")||`<li class="empty">Kein Skigebiet gefunden.</li>`;
+  updToggle();
 }
 function renderLands(){
   const lands=[...new Set(areas.map(a=>a.land))].sort();
   $("#land").innerHTML=`<option value="">Alle Länder</option>`+lands.map(x=>`<option>${esc(x)}</option>`).join("");
 }
 function renderView(){
+  special=null;if(cur)lastArea=cur.name;
   const v=$("#view");
   if(!cur){v.innerHTML=`<div class="empty">Wähle links ein Skigebiet aus.</div>`;return}
   v.innerHTML=`<div class="top"><h2>${esc(cur.name)}</h2><button data-star aria-pressed="${favs.includes(cur.id)}">${favs.includes(cur.id)?"★ Favorit":"☆ Merken"}</button>${ro()?"":"<button data-aedit>Gebiet bearbeiten</button>"}<span>${esc(cur.land)}${cur.elev?` · ${esc(cur.elev)} m`:""}</span></div>
@@ -319,7 +353,7 @@ function camMedia(w){
 }
 function showCams(){
   const c=cur.webcams||[];
-  const links=`<p style="display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center">Webcams suchen bei: ${provLinks(cur).map(([t,u])=>`<a class="link" href="${esc(u)}" target="_blank" rel="noopener">${t}</a>`).join("")}<label style="margin-left:auto">Größe <input type="range" id="camw" min="200" max="900" step="20" value="${camw}" style="width:140px;vertical-align:middle"></label>${ro()?"":`<button class="primary" data-add>Webcam hinzufügen</button>`}</p>`;
+  const links=`<div style="display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin-bottom:8px"><label>Größe <input type="range" id="camw" min="200" max="900" step="20" value="${camw}" style="width:150px;vertical-align:middle"></label>${ro()?"":`<button class="primary" data-add>Webcam hinzufügen</button>`}</div><details style="margin-bottom:10px"><summary style="cursor:pointer;color:var(--mute)">Webcams suchen</summary><p style="display:flex;flex-wrap:wrap;gap:6px 14px;margin:8px 0 0">${provLinks(cur).map(([t,u])=>`<a class="link" href="${esc(u)}" target="_blank" rel="noopener">${t}</a>`).join("")}</p></details>`;
   $("#body").innerHTML=links+(c.length?`<div class="grid">${c.map((w,i)=>{const sl=fotoSlug(w),href=sl?fotoPage(sl):w.url;return `<div class="cam">${camMedia(w)}<div><span>${w.provider?esc(w.provider)+": ":""}${esc(w.title)}</span>${href?`<a href="${esc(href)}" target="_blank" rel="noopener">Im neuen Tab öffnen</a>`:""}</div><p class="meta"><span>${esc(camMeta(w))||"Standort und Höhe nicht angegeben"}</span>${ro()?"":`<span><button data-edit="${i}">Bearbeiten</button> <button data-del="${i}">Entfernen</button></span>`}</p></div>`}).join("")}</div>
   <p style="color:var(--mute);font-size:13px">Bleibt ein Feld leer, erlaubt der Anbieter keine Einbettung. Dann den Link „Im neuen Tab öffnen“ nutzen. Mit dem Regler „Größe“ stellst du die Anzeige ein.</p>`
   :`<div class="empty">Noch keine Webcam hinterlegt. Über die Suchlinks eine Seite finden und mit „Webcam hinzufügen“ eintragen.</div>`);
@@ -337,7 +371,7 @@ function initMap(host){
   L.control.layers({"Straßenkarte":osm,"Topografisch":topo},{"Pisten und Lifte":pistes}).addTo(map);
   return map;
 }
-function openArea(n){cur=areas.find(a=>a.id===n);tab="cams";renderList();renderView();}
+function openArea(n){cur=areas.find(a=>a.id===n);tab="cams";renderList();renderView();collapseList();}
 const openLink=a=>`<a href="#" onclick="openArea(${esc(JSON.stringify(a.id))});return false">Gebiet öffnen</a>`;
 const mkSvg=(bg,inner)=>`<svg viewBox="0 0 32 32" width="32" height="32"><circle cx="16" cy="16" r="14" fill="${bg}" stroke="#fff" stroke-width="2"/>${inner}</svg>`;
 const mkIcon=html=>L.divIcon({className:"mk",html,iconSize:[32,32],iconAnchor:[16,16],popupAnchor:[0,-14]});
@@ -355,7 +389,7 @@ function plot(m,list){
 }
 function showCamMap(){const m=initMap($("#body"));if(m)plot(m,[cur]);}
 function showGlobalMap(){
-  cur=null;renderList();
+  special="map";cur=null;renderList();
   $("#view").innerHTML=`<div class="top"><h2>Karte</h2><span>Skigebiete und Webcams mit Pistenlayer. Webcams ohne eigene Position liegen am Gebietszentrum.</span></div><div id="gm"></div>`;
   const m=initMap($("#gm"));if(m)plot(m,areas);
 }
@@ -378,7 +412,7 @@ async function showWx(){
   }catch(e){ if(cur===area) b.innerHTML=`<div class="err">Wetterdaten konnten nicht geladen werden. Internetverbindung prüfen und den Tab erneut öffnen.</div>`; }
 }
 
-$("#list").addEventListener("click",e=>{const b=e.target.closest("button[data-n]");if(!b)return;cur=areas.find(a=>a.id===b.dataset.n);renderList();renderView();});
+$("#list").addEventListener("click",e=>{const b=e.target.closest("button[data-n]");if(!b)return;cur=areas.find(a=>a.id===b.dataset.n);renderList();renderView();collapseList();});
 $("#view").addEventListener("click",e=>{
   if(e.target.closest("[data-add]")){openCamDlg();return}
   if(e.target.closest("[data-aedit]")){openAreaDlg(cur);return}
@@ -387,7 +421,7 @@ $("#view").addEventListener("click",e=>{
   if(dl){const w=cur.webcams[+dl.dataset.del];if(!ro()&&w&&confirm(`Webcam „${w.title}“ entfernen?`)){addTomb(w,"cam",cur.id);cur.webcams.splice(+dl.dataset.del,1);persist();showCams()}return}
   if(e.target.closest("[data-star]")){favs=favs.includes(cur.id)?favs.filter(n=>n!==cur.id):[...favs,cur.id];persistFavs();renderList();renderView();return}
   const o=e.target.closest("[data-open]");
-  if(o){e.preventDefault();cur=areas.find(a=>a.id===o.dataset.open);tab="cams";renderList();renderView();return}
+  if(o){e.preventDefault();cur=areas.find(a=>a.id===o.dataset.open);tab="cams";renderList();renderView();collapseList();return}
   const b=e.target.closest("button[data-t]");if(!b)return;tab=b.dataset.t;renderView();
 });
 $("#fav").addEventListener("change",renderList);
@@ -425,7 +459,7 @@ $("#c_save").onclick=()=>{
   cur.webcams=cur.webcams||[];if(editC==null)cur.webcams.push(w);else cur.webcams[editC]=w;persist();cdlg.close();showCams();
 };
 function showOverview(){
-  cur=null;renderList();
+  special=null;cur=null;renderList();
   const f=areas.filter(a=>favs.includes(a.id)),v=$("#view");
   if(!f.length){v.innerHTML=`<div class="empty">Noch keine Favoriten. Ein Skigebiet öffnen und „Merken“ wählen.</div>`;return}
   v.innerHTML=`<div class="top"><h2>Favoriten</h2><span>Aktuelles Wetter, Klick auf den Namen öffnet Webcams</span></div><div class="days" style="grid-template-columns:repeat(auto-fill,minmax(210px,1fr))">${f.map((a,i)=>`<div class="day"><b><a class="link" href="#" data-open="${esc(a.id)}">${esc(a.name)}</a></b><p id="ov${i}">Wetter lädt …</p></div>`).join("")}</div>`;
@@ -553,7 +587,7 @@ function initSb(){
 }
 function schedule(){if(!sb)return;clearTimeout(syncTimer);syncTimer=setTimeout(sync,800);setSt("Sync: ausstehend …")}
 function applyRole(){$("#add-area").hidden=$("#edit").hidden=ro();$("#codes-btn").hidden=role!=="admin"}
-function rerender(){const id=cur&&cur.id;cur=id?areas.find(a=>a.id===id)||null:null;applyRole();renderLands();renderList();cur?renderView():showOverview()}
+function rerender(){const id=cur&&cur.id;cur=id?areas.find(a=>a.id===id)||null:null;applyRole();renderLands();renderList();cur?renderView():(special||showOverview())}
 const strip=o=>{const {id,u,webcams,...d}=o;return d};
 const rowOf=(o,kind,aid)=>({id:o.id,kind,area_id:aid,data:strip(o),u:o.u||0,deleted:false});
 const tombRow=t=>({id:t.id,kind:t.kind,area_id:t.area_id,data:{},u:t.u,deleted:true});
@@ -665,7 +699,7 @@ async function loadScores(){
   else $("#me-st").textContent="";
 }
 function showRank(){
-  cur=null;renderList();const v=$("#view");
+  special="rank";cur=null;renderList();const v=$("#view");
   if(!sb||!role||role==="none"){v.innerHTML=`<div class="empty">Melde dich über „Konto“ an, um Punkte zu sammeln und die Rangliste zu sehen.</div>`;return}
   const me=board.find(x=>x.user_id===myId),pts=me?+me.points:0,cams=me?+me.entries:0,r=rankOf(pts,cams);
   const rows=board.map((x,i)=>{const k=rankOf(+x.points,+x.entries);return `<tr class="${x.user_id===myId?"me":""}"><td>${i+1}</td><td>${esc(x.name)}</td><td>${k>=0?esc(RANKS[k].name):"–"}</td><td>${x.points}</td></tr>`}).join("");
@@ -737,6 +771,74 @@ $("#k_new").onclick=async()=>{
 };
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&sb&&!document.querySelector("dialog[open]"))sync()});
 initSb();if(sb)sync();
+setInterval(()=>{if(!document.hidden&&sb&&!document.querySelector("dialog[open]"))sync()},60000);
+
+/* Feedback: Bugs melden und Ideen vorschlagen */
+async function showFeedback(){
+  if(cur)lastArea=cur.name;
+  special="fb";cur=null;renderList();collapseList();const v=$("#view");
+  if(!sb||!role||role==="none"){v.innerHTML=`<div class="empty">Melde dich über „Konto“ an, um Bugs zu melden oder Ideen vorzuschlagen.</div>`;return}
+  v.innerHTML=`<div class="top"><h2>Feedback</h2><span>Bugs melden und Ideen vorschlagen</span></div>
+  <div class="now" style="display:block"><div style="display:grid;gap:8px;max-width:640px">
+    <select id="fb_kind" class="fin" aria-label="Art der Meldung"><option value="bug">Bug melden</option><option value="idea">Idee vorschlagen</option></select>
+    <input id="fb_title" class="fin" maxlength="100" placeholder="Kurzer Titel" aria-label="Titel">
+    <textarea id="fb_body" class="fin" maxlength="2000" placeholder="Beschreibung: Was ist passiert, oder was wünschst du dir?" aria-label="Beschreibung" style="height:130px;font:inherit"></textarea>
+    <label style="font-size:13px"><input type="checkbox" id="fb_tech" checked> Browser- und Gebietsinfos anhängen (hilft bei Bugs)</label>
+    <p id="fb_err" class="err" hidden></p>
+    <div><button class="primary" id="fb_send">Absenden</button></div>
+  </div></div>
+  <h3>Bisherige Meldungen</h3><div id="fb_list">Lädt …</div>`;
+  if(window.__lastErr){$("#fb_body").value="Fehlermeldung der Seite: "+window.__lastErr+"\n\n"}
+  await loadFeedback();
+}
+async function loadFeedback(){
+  const el=$("#fb_list");if(!el)return;
+  const {data,error}=await sb.rpc("ski_feedback_list");
+  if(!$("#fb_list"))return;
+  if(error){el.innerHTML=`<div class="err">${esc(error.message)}</div>`;return}
+  if(!data||!data.length){el.innerHTML=`<div class="empty">Noch keine Meldungen.</div>`;return}
+  const adm=role==="admin";
+  el.innerHTML=data.map(f=>`<div class="day" style="margin-bottom:10px"><span class="badge ${f.kind==="bug"?"bug":""}">${f.kind==="bug"?"Bug":"Idee"}</span><strong>${esc(f.title)}</strong><p style="white-space:pre-wrap;color:var(--ink);font-size:14px">${esc(f.body)}</p><p>${esc(f.author)} · ${new Date(f.created_at).toLocaleDateString("de-DE")} · Status: ${adm?`<select data-fbs="${esc(f.id)}">${["offen","in Arbeit","erledigt","abgelehnt"].map(x=>`<option${x===f.status?" selected":""}>${x}</option>`).join("")}</select>`:`<strong>${esc(f.status)}</strong>`}${adm||f.mine?` <button data-fbd="${esc(f.id)}">Löschen</button>`:""}</p></div>`).join("");
+}
+$("#fb-btn").onclick=()=>showFeedback();
+$("#view").addEventListener("click",async e=>{
+  if(e.target.id==="fb_send"){
+    const err=m=>{const p=$("#fb_err");p.textContent=m;p.hidden=false};
+    const kind=$("#fb_kind").value,title=$("#fb_title").value.trim();let body=$("#fb_body").value.trim();
+    if(title.length<3)return err("Bitte einen Titel mit mindestens 3 Zeichen eingeben.");
+    if($("#fb_tech").checked)body+=`\n\n---\nGebiet: ${lastArea||"–"}\nBrowser: ${navigator.userAgent}`;
+    if(body.length>2000)return err("Der Text ist zu lang (höchstens 2000 Zeichen, inklusive Browser-Infos).");
+    $("#fb_send").disabled=true;
+    const {error}=await sb.rpc("ski_feedback_add",{p_kind:kind,p_title:title,p_body:body});
+    $("#fb_send").disabled=false;
+    if(error)return err(error.message);
+    $("#fb_title").value="";$("#fb_body").value="";$("#fb_err").hidden=true;window.__lastErr=null;
+    await loadFeedback();return;
+  }
+  const d=e.target.closest("[data-fbd]");
+  if(d&&confirm("Diese Meldung löschen?")){const {error}=await sb.rpc("ski_feedback_delete",{p_id:d.dataset.fbd});if(error)alert(error.message);await loadFeedback()}
+});
+$("#view").addEventListener("change",async e=>{
+  const x=e.target.closest("[data-fbs]");if(!x)return;
+  const {error}=await sb.rpc("ski_feedback_status",{p_id:x.dataset.fbs,p_status:x.value});if(error)alert(error.message);
+});
+
+/* Mobile Menüs und Design */
+const mq=window.matchMedia("(max-width:760px)"),asideEl=document.querySelector("aside"),hdr=document.querySelector("header");
+function updToggle(){const c=asideEl.classList.contains("collapsed");$("#list-toggle").textContent=`Skigebiete: ${cur?cur.name:"Auswahl"} ${c?"▾":"▴"}`;$("#list-toggle").setAttribute("aria-expanded",String(!c))}
+function collapseList(){if(mq.matches){asideEl.classList.add("collapsed");updToggle()}}
+$("#list-toggle").onclick=()=>{asideEl.classList.toggle("collapsed");updToggle()};
+if(mq.matches)asideEl.classList.add("collapsed");
+function menuState(o){hdr.classList.toggle("open",o);$("#menu-btn").setAttribute("aria-expanded",String(o));$("#menu-btn").textContent=o?"✕ Menü":"☰ Menü"}
+$("#menu-btn").onclick=()=>menuState(!hdr.classList.contains("open"));
+$("#hnav").addEventListener("click",e=>{if(e.target.closest("button")&&mq.matches)menuState(false)});
+function setTheme(t){
+  document.documentElement.dataset.theme=t;try{localStorage.setItem("skiview-theme",t)}catch(e){}
+  $("#theme-btn").textContent=t==="dark"?"Hell":"Dunkel";
+  document.querySelector('meta[name=theme-color]').content=t==="dark"?"#2f2b45":"#f1edfb";
+}
+$("#theme-btn").onclick=()=>setTheme(document.documentElement.dataset.theme==="dark"?"light":"dark");
+setTheme(document.documentElement.dataset.theme||"light");
 
 renderLands();showOverview();
 </script>
