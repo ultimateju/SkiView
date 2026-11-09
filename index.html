@@ -72,14 +72,19 @@ dialog{width:min(720px,94vw);background:var(--panel);color:var(--ink);border:1px
 dialog::backdrop{background:rgba(0,0,0,.5)}
 textarea{width:100%;height:50vh;font:13px/1.45 ui-monospace,Menlo,Consolas,monospace;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px}
 .row{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
-#list-toggle{display:none}
+#list-toggle{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);border-radius:0;background:var(--panel);padding:10px 14px;font-weight:600}
+@media (min-width:761px){
+ main.sbc{grid-template-columns:48px 1fr}
+ aside.collapsed .filters,aside.collapsed label,aside.collapsed #list{display:none!important}
+ aside.collapsed #list-toggle{flex:1;writing-mode:vertical-rl;text-align:center;padding:16px 0;border-bottom:0}
+}
 @media (max-width:760px){
  header{padding:8px 12px}
  header h1{font-size:22px}
  #menu-btn{display:inline-block;margin-left:auto}
  .hnav{display:none;width:100%;flex:none;justify-content:flex-start}
  header.open .hnav{display:flex}
- main{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+ main{grid-template-columns:minmax(0,1fr);grid-template-rows:auto 1fr}
  aside{border-right:0;border-bottom:1px solid var(--line);max-height:46vh}
  #list-toggle{display:block;width:100%;text-align:left;border:0;border-radius:0;background:var(--panel);padding:10px 14px;font-weight:600}
  aside.collapsed .filters,aside.collapsed label,aside.collapsed #list{display:none!important}
@@ -825,10 +830,15 @@ $("#view").addEventListener("change",async e=>{
 
 /* Mobile Menüs und Design */
 const mq=window.matchMedia("(max-width:760px)"),asideEl=document.querySelector("aside"),hdr=document.querySelector("header");
-function updToggle(){const c=asideEl.classList.contains("collapsed");$("#list-toggle").textContent=`Skigebiete: ${cur?cur.name:"Auswahl"} ${c?"▾":"▴"}`;$("#list-toggle").setAttribute("aria-expanded",String(!c))}
+function updToggle(){const c=asideEl.classList.contains("collapsed");$("#list-toggle").textContent=mq.matches?`Skigebiete: ${cur?cur.name:"Auswahl"} ${c?"▾":"▴"}`:(c?"› Skigebiete":"‹ Liste einklappen");$("#list-toggle").setAttribute("aria-expanded",String(!c));document.querySelector("main").classList.toggle("sbc",!mq.matches&&c)}
 function collapseList(){if(mq.matches){asideEl.classList.add("collapsed");updToggle()}}
-$("#list-toggle").onclick=()=>{asideEl.classList.toggle("collapsed");updToggle()};
-if(mq.matches)asideEl.classList.add("collapsed");
+$("#list-toggle").onclick=()=>{
+  asideEl.classList.toggle("collapsed");
+  if(!mq.matches){try{localStorage.setItem("skiview-sb",asideEl.classList.contains("collapsed")?"1":"0")}catch(e){}}
+  updToggle();
+};
+function initSide(){let c=mq.matches;if(!mq.matches){try{c=localStorage.getItem("skiview-sb")==="1"}catch(e){}}asideEl.classList.toggle("collapsed",c);updToggle()}
+initSide();mq.addEventListener("change",initSide);
 function menuState(o){hdr.classList.toggle("open",o);$("#menu-btn").setAttribute("aria-expanded",String(o));$("#menu-btn").textContent=o?"✕ Menü":"☰ Menü"}
 $("#menu-btn").onclick=()=>menuState(!hdr.classList.contains("open"));
 $("#hnav").addEventListener("click",e=>{if(e.target.closest("button")&&mq.matches)menuState(false)});
