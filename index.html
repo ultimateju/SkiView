@@ -202,6 +202,19 @@ dialog input{padding:6px 8px;border:1px solid var(--line);border-radius:6px;back
   <div class="row"><button id="c_cancel">Abbrechen</button><button id="c_save" class="primary">Speichern</button></div>
 </dialog>
 
+<dialog id="vdlg">
+  <h3 style="margin-top:0">Anzeige anpassen</h3>
+  <p style="color:var(--mute);font-size:13px;margin:0 0 8px">Eingebettete Seiten zeigen oft viel Rand. Stelle Seitenverhältnis, Zoom und Ausschnitt so ein, dass nur das Webcam-Bild in der Kachel zu sehen ist.</p>
+  <div class="cam" style="border:0;border-radius:6px"><div id="v_prev" class="frame"></div></div>
+  <div style="display:grid;gap:6px;margin-top:10px">
+    <label>Seitenverhältnis <select id="v_ar" style="padding:4px"><option value="16:10">16:10 (Standard)</option><option value="16:9">16:9</option><option value="4:3">4:3</option><option value="3:2">3:2</option><option value="1:1">1:1</option><option value="2:1">2:1 (Panorama)</option><option value="3:1">3:1 (breites Panorama)</option><option value="21:9">21:9</option></select></label>
+    <label>Zoom <span id="v_zoom_l"></span><input id="v_zoom" type="range" min="50" max="400" step="5"></label>
+    <label>Ausschnitt nach rechts verschieben <input id="v_ox" type="range" min="0" max="1200" step="10"></label>
+    <label>Ausschnitt nach unten verschieben <input id="v_oy" type="range" min="0" max="2000" step="10"></label>
+  </div>
+  <div class="row"><button id="v_reset" style="margin-right:auto">Zurücksetzen</button><button id="v_cancel">Abbrechen</button><button id="v_save" class="primary">Speichern</button></div>
+</dialog>
+
 <dialog id="dlg">
   <h3 style="margin-top:0">Datensicherung (JSON)</h3>
   <p style="color:var(--mute);margin:0 0 8px">Alle Daten als Text, zum Sichern oder zum Übertragen auf ein anderes Gerät. Zum normalen Bearbeiten reichen die Masken in der App.</p>
@@ -343,7 +356,15 @@ const fotoPage=sl=>`https://www.foto-webcam.eu/webcam/${sl}/`;
 const fotoImg=sl=>`https://www.foto-webcam.eu/webcam/${sl}/current/720.jpg`;
 let camw=420;try{camw=+localStorage.getItem("skiview-camw")||420}catch(e){}
 document.documentElement.style.setProperty("--camw",camw+"px");
-function fitFrames(){document.querySelectorAll(".frame").forEach(f=>{const i=f.firstElementChild;if(i)i.style.transform=`scale(${f.clientWidth/1280})`})}
+function fitFrames(){document.querySelectorAll(".frame").forEach(f=>{
+  const i=f.firstElementChild;if(!i)return;
+  const [a,b]=(f.dataset.ar||"16:10").split(":").map(Number),ratio=(a/b)||1.6;
+  const z=Math.max(.25,(+f.dataset.zoom||100)/100),ox=+f.dataset.ox||0,oy=+f.dataset.oy||0;
+  const W=1280/z,H=W/ratio;
+  f.style.aspectRatio=`${a||16}/${b||10}`;
+  i.style.width="1280px";i.style.height=Math.round(H+oy)+"px";
+  i.style.transform=`scale(${f.clientWidth/W}) translate(${-ox}px,${-oy}px)`;
+})}
 window.addEventListener("resize",fitFrames);
 $("#view").addEventListener("input",e=>{
   if(e.target.id!=="camw")return;
@@ -351,15 +372,17 @@ $("#view").addEventListener("input",e=>{
   try{localStorage.setItem("skiview-camw",camw)}catch(x){}
   fitFrames();
 });
+const frameAttrs=w=>`data-ar="${esc(w.ar||"16:10")}" data-zoom="${+w.zoom||100}" data-ox="${+w.ox||0}" data-oy="${+w.oy||0}"`;
+const isFrame=w=>typeof camMode==="function"?camMode(w)==="frame":(!fotoSlug(w)&&!!w.url);
 function camMedia(w){
   const sl=fotoSlug(w);
   if(sl)return `<a class="shot" href="${fotoPage(sl)}" target="_blank" rel="noopener"><img loading="lazy" alt="${esc(w.title)}" src="${fotoImg(sl)}" style="display:block;width:100%;height:auto"></a>`;
-  return w.url?`<div class="frame"><iframe loading="lazy" src="${esc(w.url)}" title="${esc(w.title)}" referrerpolicy="no-referrer"></iframe></div>`:"";
+  return w.url?`<div class="frame" ${frameAttrs(w)}><iframe loading="lazy" src="${esc(w.url)}" title="${esc(w.title)}" referrerpolicy="no-referrer"></iframe></div>`:"";
 }
 function showCams(){
   const c=cur.webcams||[];
   const links=`<div style="display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin-bottom:8px"><label>Größe <input type="range" id="camw" min="200" max="900" step="20" value="${camw}" style="width:150px;vertical-align:middle"></label>${ro()?"":`<button class="primary" data-add>Webcam hinzufügen</button>`}</div><details style="margin-bottom:10px"><summary style="cursor:pointer;color:var(--mute)">Webcams suchen</summary><p style="display:flex;flex-wrap:wrap;gap:6px 14px;margin:8px 0 0">${provLinks(cur).map(([t,u])=>`<a class="link" href="${esc(u)}" target="_blank" rel="noopener">${t}</a>`).join("")}</p></details>`;
-  $("#body").innerHTML=links+(c.length?`<div class="grid">${c.map((w,i)=>{const sl=fotoSlug(w),href=sl?fotoPage(sl):w.url;return `<div class="cam">${camMedia(w)}<div><span>${w.provider?esc(w.provider)+": ":""}${esc(w.title)}</span>${href?`<a href="${esc(href)}" target="_blank" rel="noopener">Im neuen Tab öffnen</a>`:""}</div><p class="meta"><span>${esc(camMeta(w))||"Standort und Höhe nicht angegeben"}</span>${ro()?"":`<span><button data-edit="${i}">Bearbeiten</button> <button data-del="${i}">Entfernen</button></span>`}</p></div>`}).join("")}</div>
+  $("#body").innerHTML=links+(c.length?`<div class="grid">${c.map((w,i)=>{const sl=fotoSlug(w),href=sl?fotoPage(sl):w.url;return `<div class="cam">${camMedia(w)}<div><span>${w.provider?esc(w.provider)+": ":""}${esc(w.title)}</span>${href?`<a href="${esc(href)}" target="_blank" rel="noopener">Im neuen Tab öffnen</a>`:""}</div><p class="meta"><span>${esc(camMeta(w))||"Standort und Höhe nicht angegeben"}</span>${ro()?"":`<span>${isFrame(w)?`<button data-adj="${i}" title="Seitenverhältnis, Zoom und Ausschnitt einstellen">Anzeige</button> `:""}<button data-edit="${i}">Bearbeiten</button> <button data-del="${i}">Entfernen</button></span>`}</p></div>`}).join("")}</div>
   <p style="color:var(--mute);font-size:13px">Bleibt ein Feld leer, erlaubt der Anbieter keine Einbettung. Dann den Link „Im neuen Tab öffnen“ nutzen. Mit dem Regler „Größe“ stellst du die Anzeige ein.</p>`
   :`<div class="empty">Noch keine Webcam hinterlegt. Über die Suchlinks eine Seite finden und mit „Webcam hinzufügen“ eintragen.</div>`);
   fitFrames();
@@ -420,6 +443,7 @@ async function showWx(){
 $("#list").addEventListener("click",e=>{const b=e.target.closest("button[data-n]");if(!b)return;cur=areas.find(a=>a.id===b.dataset.n);renderList();renderView();collapseList();});
 $("#view").addEventListener("click",e=>{
   if(e.target.closest("[data-add]")){openCamDlg();return}
+  const aj=e.target.closest("[data-adj]");if(aj){openAdj(+aj.dataset.adj);return}
   if(e.target.closest("[data-aedit]")){openAreaDlg(cur);return}
   const ed=e.target.closest("[data-edit]");if(ed){openCamDlg(+ed.dataset.edit);return}
   const dl=e.target.closest("[data-del]");
@@ -827,6 +851,32 @@ $("#view").addEventListener("change",async e=>{
   const x=e.target.closest("[data-fbs]");if(!x)return;
   const {error}=await sb.rpc("ski_feedback_status",{p_id:x.dataset.fbs,p_status:x.value});if(error)alert(error.message);
 });
+
+/* Anzeige eingebetteter Webcam-Seiten anpassen */
+const vdlg=$("#vdlg");let adjI=null;
+function applyAdj(){
+  const f=$("#v_prev");
+  f.dataset.ar=$("#v_ar").value;f.dataset.zoom=$("#v_zoom").value;f.dataset.ox=$("#v_ox").value;f.dataset.oy=$("#v_oy").value;
+  $("#v_zoom_l").textContent=$("#v_zoom").value+" %";fitFrames();
+}
+function openAdj(i){
+  if(ro())return;adjI=i;const w=cur.webcams[i];
+  $("#v_ar").value=w.ar||"16:10";$("#v_zoom").value=w.zoom||100;$("#v_ox").value=w.ox||0;$("#v_oy").value=w.oy||0;
+  $("#v_prev").innerHTML=`<iframe src="${esc(w.url)}" title="Vorschau" referrerpolicy="no-referrer"></iframe>`;
+  vdlg.showModal();applyAdj();
+}
+["ar","zoom","ox","oy"].forEach(k=>$("#v_"+k).addEventListener("input",applyAdj));
+$("#v_reset").onclick=()=>{$("#v_ar").value="16:10";$("#v_zoom").value=100;$("#v_ox").value=0;$("#v_oy").value=0;applyAdj()};
+$("#v_cancel").onclick=()=>vdlg.close();
+vdlg.addEventListener("close",()=>{$("#v_prev").innerHTML=""});
+$("#v_save").onclick=()=>{
+  const w=cur.webcams[adjI],ar=$("#v_ar").value,z=+$("#v_zoom").value,ox=+$("#v_ox").value,oy=+$("#v_oy").value;
+  if(ar!=="16:10")w.ar=ar;else delete w.ar;
+  if(z!==100)w.zoom=z;else delete w.zoom;
+  if(ox)w.ox=ox;else delete w.ox;
+  if(oy)w.oy=oy;else delete w.oy;
+  w.u=Date.now();persist();vdlg.close();showCams();
+};
 
 /* Mobile Menüs und Design */
 const mq=window.matchMedia("(max-width:760px)"),asideEl=document.querySelector("aside"),hdr=document.querySelector("header");
