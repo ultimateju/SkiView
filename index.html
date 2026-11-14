@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SkiView</title>
 <meta name="theme-color" content="#3a1772">
+<meta name="description" content="SkiView – Webcams, Pistenpläne und Wetter für Skigebiete.">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2064%2064%22%3E%3Cdefs%3E%3CclipPath%20id=%22fv%22%3E%3Cpath%20d=%22M17%2026Q32%2013%2047%2026Q32%2039%2017%2026Z%22/%3E%3C/clipPath%3E%3C/defs%3E%3Cellipse%20cx=%2232%22%20cy=%2259%22%20rx=%2217%22%20ry=%223.5%22%20fill=%22%237d80da%22/%3E%3Cpath%20d=%22M26%2057L28.5%2044h7L38%2057z%22%20fill=%22%23b0a3d4%22/%3E%3Ccircle%20cx=%2232%22%20cy=%2226%22%20r=%2222%22%20fill=%22%23b0a3d4%22/%3E%3Ccircle%20cx=%2232%22%20cy=%2226%22%20r=%2217%22%20fill=%22%233a1772%22/%3E%3Cpath%20d=%22M17%2026Q32%2013%2047%2026Q32%2039%2017%2026Z%22%20fill=%22%23fff%22/%3E%3Cg%20clip-path=%22url%28%23fv%29%22%3E%3Ccircle%20cx=%2232%22%20cy=%2226%22%20r=%227.5%22%20fill=%22%23f2cd5d%22/%3E%3Ccircle%20cx=%2232%22%20cy=%2226%22%20r=%223.8%22%20fill=%22%233a1772%22/%3E%3C/g%3E%3Ccircle%20cx=%2229.8%22%20cy=%2223.6%22%20r=%221.5%22%20fill=%22%23fff%22/%3E%3Ccircle%20cx=%2250%22%20cy=%229%22%20r=%222.6%22%20fill=%22%23f2cd5d%22/%3E%3C/svg%3E">
 <style>
 :root{
@@ -44,8 +45,12 @@ section{overflow:auto;padding:16px;min-width:0}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,var(--camw,420px)),1fr));gap:14px}
 .cam{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .cam .shot{display:block;background:#000}
+.cam a.shot{aspect-ratio:16/10;overflow:hidden}
+.cam a.shot img{width:100%;height:100%;object-fit:cover}
 .cam .frame{position:relative;aspect-ratio:16/10;overflow:hidden;background:#000}
 .cam .frame iframe{position:absolute;left:0;top:0;width:1280px;height:800px;border:0;transform-origin:0 0}
+iframe.fw-player{width:100%;border:0;display:block;background:#000}
+iframe.wplayer{width:100%;aspect-ratio:16/9;border:0;display:block;background:#000}
 .mk{filter:drop-shadow(0 1px 2px rgba(0,0,0,.45))}
 .cam div{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px}
 .cam a,.link{color:var(--accent);text-decoration:none;font-weight:600}
@@ -155,14 +160,17 @@ dialog input{padding:6px 8px;border:1px solid var(--line);border-radius:6px;back
   <h3 id="c_h" style="margin-top:0">Webcam hinzufügen</h3>
   <div style="display:grid;gap:8px">
     <input id="c_title" placeholder="Titel, z. B. Idalp" aria-label="Titel">
-    <input id="c_prov" list="provlist" placeholder="Anbieter, z. B. foto-webcam.eu" aria-label="Anbieter"><datalist id="provlist"><option value="foto-webcam.eu"><option value="Panomax"><option value="Bergfex"><option value="Offizielle Seite"></datalist>
-    <input id="c_url" placeholder="Webcam-Adresse (bei foto-webcam.eu genügt der Name, z. B. hochkoenig)" aria-label="Webcam-Adresse">
+    <input id="c_prov" list="provlist" placeholder="Anbieter, z. B. foto-webcam.eu" aria-label="Anbieter"><datalist id="provlist"><option value="foto-webcam.eu"><option value="feratel"><option value="Panomax"><option value="Bergfex"><option value="Offizielle Seite"></datalist>
+    <input id="c_url" placeholder="Webcam-Adresse (foto-webcam.eu: nur Name, z. B. hochkoenig; feratel: nur Kamera-ID, z. B. 6190; Windy: Webcam-Link)" aria-label="Webcam-Adresse">
     <input id="c_loc" placeholder="Standort, z. B. Bergstation Idalp" aria-label="Standort">
     <input id="c_elev" type="number" placeholder="Höhe in m" aria-label="Höhe in Metern">
     <div style="display:flex;gap:8px"><input id="c_lat" placeholder="Breite, z. B. 47.0069" aria-label="Breitengrad"><input id="c_lon" placeholder="Länge, z. B. 10.3010" aria-label="Längengrad"></div>
     <button type="button" id="c_pick">Position auf Karte wählen</button>
+    <button type="button" id="c_find">Webcams in der Nähe suchen (OpenStreetMap)</button>
+    <div style="display:flex;gap:8px"><input id="c_bf" placeholder="Ganzes Skigebiet laden: Bergfex-Listen-URL einfügen (…/webcams/c…)" aria-label="Bergfex-Gebiets-URL"><button type="button" id="c_bf_go">Gebiet laden</button></div>
+    <div id="c_res" style="color:var(--mute);font-size:13px"></div>
   </div>
-  <p style="color:var(--mute);font-size:13px">Position per Karte wählen oder Koordinaten eintragen. Ohne Angabe erscheint die Webcam am Gebietszentrum. Ist die Höhe leer, wird sie nach der Kartenwahl vorgeschlagen.</p>
+  <p style="color:var(--mute);font-size:13px">Position per Karte wählen, Koordinaten eintragen oder Treffer aus der Umgebungssuche übernehmen. Mit „Gebiet laden“ übernimmst du alle Kameras einer Bergfex-Webcam-Liste auf einmal. Ohne Angabe erscheint die Webcam am Gebietszentrum. Fehlt die Höhe, wird sie automatisch vorgeschlagen.</p>
   <p id="cerr" class="err" hidden></p>
   <div class="row"><button id="c_cancel">Abbrechen</button><button id="c_save" class="primary">Speichern</button></div>
 </dialog>
@@ -190,7 +198,7 @@ window.addEventListener("error",function(e){
 <script>
 /* HIER EINTRAGEN (gerade Anführungszeichen " verwenden, keine typografischen):
    Projekt-URL und öffentlicher Schlüssel von Supabase. Dann müssen andere Nutzer sie nicht eingeben. */
-window.SKIVIEW_CONFIG={url:"https://tocnntscirqpakifntaw.supabase.co",key:"sb_publishable_X1meXYfily8lSn7LkvGnBg_h62w3BuC"};
+window.SKIVIEW_CONFIG={url:"https://tocnntscirqpakifntaw.supabase.co",key:"sb_publishable_X1meXYfily8lSn7LkvGnBg_h62w3BuC",webcamsKey:""};
 
 /* RÄNGE (aufsteigend nach Pistenkilometern; Betreiberangaben, gerundet).
    p = nötige Punkte, n = nötige Webcams, zu denen man beigetragen hat (nur beim ersten Rang). Hier kannst du alles anpassen. */
@@ -242,7 +250,7 @@ const DEFAULTS=[
 ];
 normalize(DEFAULTS);
 const DEFAULT_FAVS=DEFAULTS.slice(0,10).map(a=>a.id);
-const KEY="skigebiete-v2", FKEY="skigebiete-fav-v1";
+const KEY="skigebiete-v1", FKEY="skigebiete-fav-v1", KEY_OLD="skigebiete-v2";
 let areas=load(), favs=loadFavs(), cur=null, tab="cams";
 let meta=(()=>{try{return JSON.parse(localStorage.getItem("skigebiete-meta"))||{}}catch(e){return {}}})();
 let tombs=(()=>{try{return JSON.parse(localStorage.getItem("skigebiete-tomb"))||[]}catch(e){return []}})();
@@ -269,7 +277,13 @@ favs=fixFavs(favs);
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
-function load(){try{const r=localStorage.getItem(KEY);if(r)return normalize(JSON.parse(r))}catch(e){}return structuredClone(DEFAULTS)}
+function load(){
+  let r=null;try{r=localStorage.getItem(KEY)}catch(e){}
+  // Migration vom alten Schlüssel; Original bleibt erhalten (idempotent)
+  if(!r){try{r=localStorage.getItem(KEY_OLD);if(r)localStorage.setItem(KEY,r)}catch(e){}}
+  try{if(r)return normalize(JSON.parse(r))}catch(e){}
+  return structuredClone(DEFAULTS)
+}
 function loadFavs(){try{const r=localStorage.getItem(FKEY);if(r)return JSON.parse(r)}catch(e){}return [...DEFAULT_FAVS]}
 function persistFavs(){meta.favu=Date.now();saveMeta();try{localStorage.setItem(FKEY,JSON.stringify(favs))}catch(e){}schedule()}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(areas))}catch(e){}schedule()}
@@ -280,9 +294,11 @@ function renderList(){
   const rows=areas.filter(a=>(!l||a.land===l)&&(!fo||favs.includes(a.id))&&a.name.toLowerCase().includes(q)).sort((x,y)=>favs.includes(y.id)-favs.includes(x.id)||x.name.localeCompare(y.name,"de"));
   $("#list").innerHTML=rows.map(a=>`<li><button data-n="${esc(a.id)}" aria-current="${!!cur&&cur.id===a.id}"><span>${favs.includes(a.id)?"★ ":""}${esc(a.name)}</span><small>${esc(a.land)}</small></button></li>`).join("")||`<li class="empty">Kein Skigebiet gefunden.</li>`;
 }
+/* ---- Darstellung: Liste, Ansicht, Karten ---- */
 function renderLands(){
-  const lands=[...new Set(areas.map(a=>a.land))].sort();
+  const sel=$("#land").value,lands=[...new Set(areas.map(a=>a.land))].sort();
   $("#land").innerHTML=`<option value="">Alle Länder</option>`+lands.map(x=>`<option>${esc(x)}</option>`).join("");
+  if(lands.includes(sel))$("#land").value=sel;
 }
 function renderView(){
   const v=$("#view");
@@ -292,7 +308,7 @@ function renderView(){
   <div id="body"></div>`;
   ({cams:showCams,cmap:showCamMap,map:showMap,wx:showWx})[tab]();
 }
-function provLinks(a){const n=encodeURIComponent(a.name),g=x=>`https://www.google.com/search?q=${n}+${x}`;return [["foto-webcam.eu",g("webcam+site:foto-webcam.eu")],["Panomax",g("webcam+site:panomax.com")],["Bergfex",g("webcam+site:bergfex.at")],["Offizielle Seite",g("Skigebiet+Webcam")]];}
+function provLinks(a){const n=encodeURIComponent(a.name),g=x=>`https://www.google.com/search?q=${n}+${x}`;return [["foto-webcam.eu",g("webcam+site:foto-webcam.eu")],["feratel",g("webcam+feratel")],["Panomax",g("webcam+site:panomax.com")],["Bergfex",g("webcam+site:bergfex.at")],["Offizielle Seite",g("Skigebiet+Webcam")]];}
 const camMeta=w=>[w.standort,w.elev!=null&&w.elev!==""?`${w.elev} m`:""].filter(Boolean).join(" · ");
 const fotoSlug=w=>{
   const u=String(w.url||"").trim();
@@ -302,9 +318,33 @@ const fotoSlug=w=>{
 };
 const fotoPage=sl=>`https://www.foto-webcam.eu/webcam/${sl}/`;
 const fotoImg=sl=>`https://www.foto-webcam.eu/webcam/${sl}/current/720.jpg`;
+/* Feratel-Webcams: ID aus Player- oder Bild-URL, oder nackte ID mit Anbieter "feratel" */
+const feratelId=w=>{
+  const u=String(w.url||"").trim();
+  if(/(^|\.)feratel\.com/i.test(u)){
+    const m=u.match(/[?&]cam=(\d+)/)||u.match(/\/picture\/\d+\/(\d+)\.(?:jpe?g|png|webp)(?:[?#]|$)/i);
+    if(m)return m[1];
+  }
+  if(/feratel/i.test(w.provider||"")&&/^\d+$/.test(u))return u;
+  return null;
+};
+const feratelPage=id=>`https://webtvfc.feratel.com/webtv/?design=v5&pg=DA7D2F22-8600-464D-9D4F-CDB04014A6C5&cam=${id}&lg=de&sound=muted`;/* alte webtv-v3-URL liefert 404; pg = Portal-GUID aus den feratel.com-Embeds */
+/* Offizielles Live-Standbild (720x405) laut MediaPlayer-v3-Handbuch; CORS offen */
+const feratelImg=id=>`https://wtvpict.feratel.com/picture/37/${id}.jpeg?&design=v3`;
+/* Windy/Webcams: öffentlicher Embed-Player ohne Token; API-Bilder tragen nur 10-Minuten-Token */
+const windyId=w=>{const u=String(w.url||"");if(!/windy\.com/i.test(u)&&!/windy/i.test(w.provider||"")&&w.windyId==null)return null;const m=u.match(/webcams\/(\d+)|player\/(\d+)/);return m?m[1]||m[2]:(/^\d+$/.test(u.trim())?u.trim():w.windyId||null)};
+const windyPlayer=id=>`https://webcams.windy.com/webcams/public/embed/player/${id}/day?autoPlay=1`;
+const camHref=w=>{const sl=fotoSlug(w);if(sl)return fotoPage(sl);const u=String(w.url||"").trim();if(/^https?:/i.test(u))return u;const fid=feratelId(w);return fid?feratelPage(fid):u};
+const isImgUrl=u=>/\.(jpe?g|png|webp)(\?|#|$)/i.test(u||"");
+/* Kamera-Hersteller-Snapshot-URLs sind Direktbilder, auch ohne Dateiendung */
+const isShot=u=>isImgUrl(u)||/axis-cgi\/(jpg\/)?image|\/Streaming\/channels\/\d+\/picture|snapshot\.cgi|viewer\/video\.jpg|faststream\.jpg/i.test(u||"");
+const titleFromUrl=u=>{try{const m=String(u||"").split(/[?#]/)[0].split("/").filter(Boolean).pop()||"";const t=decodeURIComponent(m).replace(/\.(jpe?g|png|webp)$/i,"").replace(/[-_]+/g," ").trim();return t?t.charAt(0).toUpperCase()+t.slice(1):""}catch(e){return ""}};
+/* Wurde statt der Adresse HTML-/Embed-Code eingefügt: Webcam-URL daraus übernehmen, iframe/img/a bevorzugt */
+const urlFromPaste=u=>{u=String(u||"").trim();if(!u||/^https?:\/\//i.test(u))return u;const m=u.match(/<(?:iframe|img|a)[^>]*?(?:src|href)=["']?(https?:\/\/[^\s"'<>]+)/i)||u.match(/(?:src|href)=["']?(https?:\/\/[^\s"'<>]+)/i)||u.match(/https?:\/\/[^\s"'<>]+/i);return m?(m[1]||m[0]):u};
 let camw=420;try{camw=+localStorage.getItem("skiview-camw")||420}catch(e){}
+const big=new Set();
 document.documentElement.style.setProperty("--camw",camw+"px");
-function fitFrames(){document.querySelectorAll(".frame").forEach(f=>{const i=f.firstElementChild;if(i)i.style.transform=`scale(${f.clientWidth/1280})`})}
+function fitFrames(){document.querySelectorAll(".frame").forEach(f=>{const i=f.firstElementChild;if(i)i.style.transform=`scale(${f.clientWidth/1280})`});document.querySelectorAll("iframe.fw-player").forEach(f=>{const wd=f.parentElement.clientWidth;f.style.height=Math.round(wd*9/16)+(wd<450?145:95)+"px"})}
 window.addEventListener("resize",fitFrames);
 $("#view").addEventListener("input",e=>{
   if(e.target.id!=="camw")return;
@@ -312,15 +352,34 @@ $("#view").addEventListener("input",e=>{
   try{localStorage.setItem("skiview-camw",camw)}catch(x){}
   fitFrames();
 });
+const parseBergfex=h=>{
+  const out=[],seen=new Set(),names=new Map();
+  const re=/<img[^>]*src=["']((?:https?:)?\/\/images\.bergfex\.[a-z.]+\/webcams\/\?id=(\d+)[^"']*)["'][^>]*>/gi;
+  let m;
+  while((m=re.exec(h))&&out.length<60){
+    if(seen.has(m[2]))continue;seen.add(m[2]);
+    let name=((m[0].match(/alt=["']([^"']*)["']/)||[])[1]||"").replace(/&amp;/g,"&").trim()||"Bergfex-Webcam";
+    const n=(names.get(name)||0)+1;names.set(name,n);if(n>1)name+=" ("+n+")";
+    out.push({name,url:"https://"+m[1].replace(/^(https?:)?\/\//i,"").replace(/&amp;/g,"&")});
+  }
+  return out;
+};
+const bfSubLinks=h=>[...new Set([...h.matchAll(/href=["']([^"']*\/webcams\/c\d+\/?)["']/g)].map(m=>m[1]))].slice(0,8);
 function camMedia(w){
-  const sl=fotoSlug(w);
-  if(sl)return `<a class="shot" href="${fotoPage(sl)}" target="_blank" rel="noopener"><img loading="lazy" alt="${esc(w.title)}" src="${fotoImg(sl)}" style="display:block;width:100%;height:auto"></a>`;
-  return w.url?`<div class="frame"><iframe loading="lazy" src="${esc(w.url)}" title="${esc(w.title)}" referrerpolicy="no-referrer"></iframe></div>`:"";
+  const sl=fotoSlug(w),fid=feratelId(w),wid=windyId(w),pmx=/panomax\.com/i.test(w.url||"");
+  if(sl&&big.has(w.id))return `<div class="shot"><iframe class="fw-player" loading="lazy" src="${fotoPage(sl)}?frame=1" title="${esc(w.title)}" allowfullscreen referrerpolicy="no-referrer"></iframe></div>`;
+  if(sl)return `<a class="shot" href="${fotoPage(sl)}" target="_blank" rel="noopener"><img loading="lazy" alt="${esc(w.title)}" src="${fotoImg(sl)}" style="display:block;width:100%"></a>`;
+  if(fid)return `<a class="shot" href="${esc(camHref(w))}" target="_blank" rel="noopener"><img loading="lazy" alt="${esc(w.title)}" src="${feratelImg(fid)}" style="display:block;width:100%"></a>`;
+  if(wid)return `<div class="shot"><iframe class="wplayer" loading="lazy" src="${windyPlayer(wid)}" title="${esc(w.title)}" allowfullscreen></iframe></div>`;
+  if(pmx)return `<div class="frame"><iframe loading="lazy" src="${esc(w.url)}" title="${esc(w.title)}" allowfullscreen referrerpolicy="no-referrer"></iframe></div>`;
+  if(/images\.bergfex\.[a-z.]+\/webcams\/\?id=/i.test(w.url||""))return `<a class="shot" href="${esc(w.url)}" target="_blank" rel="noopener"><img loading="lazy" alt="${esc(w.title)}" src="${esc(w.url)}" style="display:block;width:100%" onerror="if(!this.dataset.px){this.dataset.px=1;this.src='https://wsrv.nl/?url='+encodeURIComponent(this.src)+'&n='+Date.now()}"></a>`;
+  if(isShot(w.url))return `<a class="shot" href="${esc(w.url)}" target="_blank" rel="noopener"><img loading="lazy" alt="${esc(w.title)}" src="${esc(w.url)}" style="display:block;width:100%" onerror="if(!this.dataset.px){this.dataset.px=1;this.src='https://wsrv.nl/?url='+encodeURIComponent(this.src)+'&n='+Date.now()}"></a>`;
+  return w.url?`<div class="frame"><iframe loading="lazy" src="${esc(camHref(w))}" title="${esc(w.title)}" referrerpolicy="no-referrer"></iframe></div>`:"";
 }
 function showCams(){
   const c=cur.webcams||[];
   const links=`<p style="display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center">Webcams suchen bei: ${provLinks(cur).map(([t,u])=>`<a class="link" href="${esc(u)}" target="_blank" rel="noopener">${t}</a>`).join("")}<label style="margin-left:auto">Größe <input type="range" id="camw" min="200" max="900" step="20" value="${camw}" style="width:140px;vertical-align:middle"></label>${ro()?"":`<button class="primary" data-add>Webcam hinzufügen</button>`}</p>`;
-  $("#body").innerHTML=links+(c.length?`<div class="grid">${c.map((w,i)=>{const sl=fotoSlug(w),href=sl?fotoPage(sl):w.url;return `<div class="cam">${camMedia(w)}<div><span>${w.provider?esc(w.provider)+": ":""}${esc(w.title)}</span>${href?`<a href="${esc(href)}" target="_blank" rel="noopener">Im neuen Tab öffnen</a>`:""}</div><p class="meta"><span>${esc(camMeta(w))||"Standort und Höhe nicht angegeben"}</span>${ro()?"":`<span><button data-edit="${i}">Bearbeiten</button> <button data-del="${i}">Entfernen</button></span>`}</p></div>`}).join("")}</div>
+  $("#body").innerHTML=links+(c.length?`<div class="grid">${c.map((w,i)=>{const sl=fotoSlug(w),href=camHref(w);return `<div class="cam">${camMedia(w)}<div><span>${w.provider?esc(w.provider)+": ":""}${esc(w.title)}</span>${href?`<a href="${esc(href)}" target="_blank" rel="noopener">Im neuen Tab öffnen</a>`:""}</div><p class="meta"><span>${esc(camMeta(w))||"Standort und Höhe nicht angegeben"}</span>${sl?`<button data-big="${w.id}">${big.has(w.id)?"Bild":"Archiv"}</button>`:""}${ro()?"":`<span><button data-edit="${i}">Bearbeiten</button> <button data-del="${i}">Entfernen</button></span>`}</p></div>`}).join("")}</div>
   <p style="color:var(--mute);font-size:13px">Bleibt ein Feld leer, erlaubt der Anbieter keine Einbettung. Dann den Link „Im neuen Tab öffnen“ nutzen. Mit dem Regler „Größe“ stellst du die Anzeige ein.</p>`
   :`<div class="empty">Noch keine Webcam hinterlegt. Über die Suchlinks eine Seite finden und mit „Webcam hinzufügen“ eintragen.</div>`);
   fitFrames();
@@ -343,7 +402,7 @@ const mkSvg=(bg,inner)=>`<svg viewBox="0 0 32 32" width="32" height="32"><circle
 const mkIcon=html=>L.divIcon({className:"mk",html,iconSize:[32,32],iconAnchor:[16,16],popupAnchor:[0,-14]});
 const camIcon=()=>mkIcon(mkSvg("#3a1772",`<rect x="7" y="11" width="12" height="10" rx="2" fill="#fff"/><circle cx="13" cy="16" r="2.6" fill="#3a1772"/><path d="M20 14.5l5-2.5v8l-5-2.5z" fill="#fff"/>`));
 const areaIcon=()=>mkIcon(mkSvg("#f2cd5d",`<path d="M6 22l7-11 4 6 3-4 6 9z" fill="#3a1772"/>`));
-const camPop=(w,a)=>{const sl=fotoSlug(w);return `<b>${esc(w.title)}</b><br>${w.provider?esc(w.provider)+"<br>":""}${esc(camMeta(w))}${w.lat==null||w.lon==null?"<br><i>Position ungefähr (Gebietszentrum)</i>":""}${sl?`<a href="${fotoPage(sl)}" target="_blank" rel="noopener"><img src="${fotoImg(sl)}" alt="${esc(w.title)}" style="display:block;width:240px;max-width:100%;margin:6px 0"></a>`:""}${w.url?`<br><a href="${esc(sl?fotoPage(sl):w.url)}" target="_blank" rel="noopener">Webcam öffnen</a>`:""}<br>${openLink(a)}`};
+const camPop=(w,a)=>{const sl=fotoSlug(w),fid=feratelId(w),img=sl?fotoImg(sl):fid?feratelImg(fid):isShot(w.url)?w.url:null;return `<b>${esc(w.title)}</b><br>${w.provider?esc(w.provider)+"<br>":""}${esc(camMeta(w))}${w.lat==null||w.lon==null?"<br><i>Position ungefähr (Gebietszentrum)</i>":""}${img?`<a href="${esc(camHref(w))}" target="_blank" rel="noopener"><img src="${esc(img)}" alt="${esc(w.title)}" style="display:block;width:240px;max-width:100%;margin:6px 0"></a>`:""}${w.url?`<br><a href="${esc(camHref(w))}" target="_blank" rel="noopener">Webcam öffnen</a>`:""}<br>${openLink(a)}`};
 function plot(m,list){
   const pts=[];
   list.forEach(a=>{
@@ -365,22 +424,24 @@ function showMap(){
   <p><a class="link" href="${esc(url)}" target="_blank" rel="noopener">Pistenplan im neuen Tab öffnen</a>${cur.pistenplan?"":` <span style="color:var(--mute)">· Standard: OpenSkiMap. Eigene Pistenplan-URL über „Gebiet bearbeiten“ eintragen.</span>`}</p>`;
 }
 const WMO={0:"Klar",1:"Überwiegend klar",2:"Wolkig",3:"Bedeckt",45:"Nebel",48:"Reifnebel",51:"Leichter Niesel",53:"Niesel",55:"Starker Niesel",61:"Leichter Regen",63:"Regen",65:"Starker Regen",71:"Leichter Schneefall",73:"Schneefall",75:"Starker Schneefall",77:"Schneegriesel",80:"Schauer",81:"Schauer",82:"Starke Schauer",85:"Schneeschauer",86:"Starke Schneeschauer",95:"Gewitter",96:"Gewitter mit Hagel",99:"Gewitter mit Hagel"};
+const cm=m=>m==null||isNaN(m)?"–":Math.round(m*100)+" cm";const mt=v=>v==null||isNaN(v)?"–":Math.round(v)+" m";const cmv=v=>v==null||isNaN(v)?"–":(+v).toFixed(1)+" cm";
 async function showWx(){
   const b=$("#body"), area=cur;
   b.innerHTML=`<div class="empty">Wetter wird geladen …</div>`;
-  const u=`https://api.open-meteo.com/v1/forecast?latitude=${area.lat}&longitude=${area.lon}${area.elev?`&elevation=${area.elev}`:""}&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m,snowfall&daily=weather_code,temperature_2m_max,temperature_2m_min,snowfall_sum,precipitation_probability_max,wind_speed_10m_max&timezone=auto&forecast_days=7`;
+  const u=`https://api.open-meteo.com/v1/forecast?latitude=${area.lat}&longitude=${area.lon}${area.elev?`&elevation=${area.elev}`:""}&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m,snowfall,snow_depth,freezing_level_height&daily=weather_code,temperature_2m_max,temperature_2m_min,snowfall_sum,snow_depth_max,precipitation_probability_max,wind_speed_10m_max&timezone=auto&forecast_days=7`;
   try{
     const r=await fetch(u); if(!r.ok) throw new Error(r.status);
     const d=await r.json(); if(cur!==area||tab!=="wx") return;
     const c=d.current, dd=d.daily;
-    b.innerHTML=`<div class="now"><div class="t">${Math.round(c.temperature_2m)}°</div><div><b>${WMO[c.weather_code]||"–"}</b><br>Gefühlt ${Math.round(c.apparent_temperature)}° · Wind ${Math.round(c.wind_speed_10m)} km/h</div><div style="color:var(--mute)">Auf ${area.elev||"Talhöhe"}${area.elev?" m":""} berechnet. Daten: Open-Meteo</div></div>
-    <div class="days">${dd.time.map((t,i)=>`<div class="day"><b>${new Date(t).toLocaleDateString("de-DE",{weekday:"short",day:"numeric",month:"numeric"})}</b>${WMO[dd.weather_code[i]]||"–"}<p>${Math.round(dd.temperature_2m_min[i])}° bis ${Math.round(dd.temperature_2m_max[i])}°</p><p>Neuschnee ${dd.snowfall_sum[i]} cm</p><p>Niederschlag ${dd.precipitation_probability_max[i]} %</p><p>Wind bis ${Math.round(dd.wind_speed_10m_max[i])} km/h</p></div>`).join("")}</div>`;
+    b.innerHTML=`<div class="now"><div class="t">${Math.round(c.temperature_2m)}°</div><div><b>${WMO[c.weather_code]||"–"}</b><br>Gefühlt ${Math.round(c.apparent_temperature)}° · Wind ${Math.round(c.wind_speed_10m)} km/h</div><div><b>Schneehöhe ${cm(c.snow_depth)}</b><br>Frostgrenze ${mt(c.freezing_level_height)}<br>Neuschnee (24 h) ${cmv(dd.snowfall_sum[0])}</div><div style="color:var(--mute)">Auf ${area.elev||"Talhöhe"}${area.elev?" m":""} berechnet. Daten: Open-Meteo</div></div>
+    <div class="days">${dd.time.map((t,i)=>`<div class="day"><b>${new Date(t).toLocaleDateString("de-DE",{weekday:"short",day:"numeric",month:"numeric"})}</b>${WMO[dd.weather_code[i]]||"–"}<p>${Math.round(dd.temperature_2m_min[i])}° bis ${Math.round(dd.temperature_2m_max[i])}°</p><p>Neuschnee ${cmv(dd.snowfall_sum[i])}</p><p>Schneehöhe ${cm(dd.snow_depth_max[i])}</p><p>Niederschlag ${dd.precipitation_probability_max[i]} %</p><p>Wind bis ${Math.round(dd.wind_speed_10m_max[i])} km/h</p></div>`).join("")}</div>`;
   }catch(e){ if(cur===area) b.innerHTML=`<div class="err">Wetterdaten konnten nicht geladen werden. Internetverbindung prüfen und den Tab erneut öffnen.</div>`; }
 }
 
 $("#list").addEventListener("click",e=>{const b=e.target.closest("button[data-n]");if(!b)return;cur=areas.find(a=>a.id===b.dataset.n);renderList();renderView();});
 $("#view").addEventListener("click",e=>{
   if(e.target.closest("[data-add]")){openCamDlg();return}
+  const bg=e.target.closest("[data-big]");if(bg){const id=bg.dataset.big;big.has(id)?big.delete(id):big.add(id);showCams();return}
   if(e.target.closest("[data-aedit]")){openAreaDlg(cur);return}
   const ed=e.target.closest("[data-edit]");if(ed){openCamDlg(+ed.dataset.edit);return}
   const dl=e.target.closest("[data-del]");
@@ -393,23 +454,41 @@ $("#view").addEventListener("click",e=>{
 $("#fav").addEventListener("change",renderList);
 $("#fav-ov").onclick=()=>showOverview();
 $("#gmap-btn").onclick=showGlobalMap;
+/* ---- Dialog: Webcam ---- */
 const cdlg=$("#cdlg"),cf=["title","prov","url","loc","elev","lat","lon"];
 let editC=null;
+/* Kuratierte Webcam-Vorschläge je Standardgebiet (foto-webcam.eu, URLs am 8.11.2026 geprüft) */
+const CAM_SUGGEST={
+ "a_dam-ls":[["Damüls","damuels"]],
+ "a_hintertuxer-gletscher":[["Tuxertal","tuxertal"],["Schlegeis","schlegeis"]],
+ "a_mountopolis-mayrhofen":[["Mayrhofen","mayrhofen"]],
+ "a_val-gardena":[["Val Gardena","valgardena"],["St. Christina (Gröden)","st-christina"]],
+ "a_willingen":[["Ettelsberg (Willingen)","ettelsberg"]],
+ "a_zugspitze":[["Zugspitze","zugspitze"],["Zugspitze Nord","zugspitze-nord"],["Sonnalpin","sonnalpin"]],
+ "a_kitzb-hel":[["Hahnenkamm Start","starthaus-hahnenkamm"],["Hahnenkamm Ziel","zielhaus-hahnenkamm"]],
+ "a_st-anton-am-arlberg":[["St. Anton","st-anton"]]
+};
 function openCamDlg(i){
   if(ro())return;
   editC=i==null?null:i;const w=i==null?{}:cur.webcams[i];
   $("#c_h").textContent=i==null?"Webcam hinzufügen":"Webcam bearbeiten";
   const m={title:w.title,prov:w.provider,url:w.url,loc:w.standort,elev:w.elev,lat:w.lat,lon:w.lon};
-  cf.forEach(k=>$("#c_"+k).value=m[k]??"");$("#cerr").hidden=true;cdlg.showModal();
+  cf.forEach(k=>$("#c_"+k).value=m[k]??"");$("#cerr").hidden=true;
+  const r=$("#c_res"),sg=i==null&&cur&&CAM_SUGGEST[cur.id];
+  if(sg){r._d=sg.map(s=>({name:s[0],url:"https://www.foto-webcam.eu/webcam/"+s[1]+"/",lat:null,ele:null}));
+    r.innerHTML="<b>Vorschläge (geprüft):</b>"+r._d.map((x,j)=>`<button type="button" data-c="${j}" style="display:block;width:100%;text-align:left;margin-bottom:4px">${esc(x.name)} · foto-webcam.eu</button>`).join("");}
+  else{r._d=null;r.textContent=""}
+  cdlg.showModal();
 }
 $("#c_cancel").onclick=()=>cdlg.close();
-$("#c_save").onclick=()=>{
+$("#c_save").onclick=async()=>{
   const v=k=>$("#c_"+k).value.trim(),err=m=>{const p=$("#cerr");p.textContent=m;p.hidden=false};
-  if(!v("title"))return err("Bitte einen Titel angeben.");
-  if(v("url")&&!/^https?:\/\//.test(v("url"))&&!/foto-?webcam/i.test(v("prov")))return err("Die Adresse muss mit http:// oder https:// beginnen.");
-  const w={title:v("title"),id:editC==null?newId("c"):cur.webcams[editC].id,u:Date.now()};
+  const uin=urlFromPaste(v("url")),t0=v("title")||titleFromUrl(uin);
+  if(!t0)return err("Bitte einen Titel angeben.");
+  if(uin&&!/^https?:\/\//.test(uin)&&!/foto-?webcam|feratel|panoramatv|windy/i.test(v("prov")))return err("Die Adresse muss mit http:// oder https:// beginnen.");
+  const w={title:t0,id:editC==null?newId("c"):cur.webcams[editC].id,u:Date.now()};
   if(v("prov"))w.provider=v("prov");
-  if(v("url"))w.url=v("url");
+  if(uin)w.url=uin;
   if(v("loc"))w.standort=v("loc");
   if(v("elev")){const n=Number(v("elev"));if(!isFinite(n))return err("Die Höhe muss eine Zahl sein.");w.elev=n}
   if(v("lat")||v("lon")){
@@ -422,6 +501,17 @@ $("#c_save").onclick=()=>{
     if(!sl)return err("Bei foto-webcam.eu bitte die Adresse (https://www.foto-webcam.eu/webcam/NAME/) oder nur den Namen angeben.");
     w.url=fotoPage(sl);if(!w.provider)w.provider="foto-webcam.eu";
   }
+  if(/feratel|panoramatv/i.test(w.provider||"")||/feratel\.com/i.test(w.url||"")){
+    const fid=feratelId(w);
+    if(!fid)return err("Bei feratel bitte die Kamera-ID (nur Zahlen) oder die Player-Adresse (https://webtv.feratel.com/webtv/?…&cam=ID) angeben.");
+    w.url=feratelPage(fid);if(!w.provider)w.provider="feratel";
+  }
+  if(/windy/i.test(w.provider||"")||/windy\.com/i.test(w.url||"")){
+    const wid=windyId(w);
+    if(!wid)return err("Bei Windy bitte die Webcam-Adresse (https://www.windy.com/webcams/ID) angeben.");
+    w.windyId=wid;w.url="https://www.windy.com/webcams/"+wid;if(!w.provider)w.provider="Windy";
+  }
+  if(w.lat!=null&&w.elev==null){try{const r=await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${w.lat}&longitude=${w.lon}`);const d=await r.json();if(d.elevation)w.elev=Math.round(d.elevation[0])}catch(e){}}
   cur.webcams=cur.webcams||[];if(editC==null)cur.webcams.push(w);else cur.webcams[editC]=w;persist();cdlg.close();showCams();
 };
 function showOverview(){
@@ -432,15 +522,16 @@ function showOverview(){
   f.forEach(async(a,i)=>{
     const el=()=>cur?null:document.getElementById("ov"+i);
     try{
-      const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${a.lat}&longitude=${a.lon}${a.elev?`&elevation=${a.elev}`:""}&current=temperature_2m,weather_code,wind_speed_10m&daily=snowfall_sum&timezone=auto&forecast_days=1`);
+      const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${a.lat}&longitude=${a.lon}${a.elev?`&elevation=${a.elev}`:""}&current=temperature_2m,weather_code,wind_speed_10m,snow_depth&daily=snowfall_sum&timezone=auto&forecast_days=1`);
       const d=await r.json(),e=el();
-      if(e)e.innerHTML=`${Math.round(d.current.temperature_2m)}° ${WMO[d.current.weather_code]||""}<br>Wind ${Math.round(d.current.wind_speed_10m)} km/h<br>Neuschnee heute ${d.daily.snowfall_sum[0]} cm`;
+      if(e)e.innerHTML=`${Math.round(d.current.temperature_2m)}° ${WMO[d.current.weather_code]||""}<br>Wind ${Math.round(d.current.wind_speed_10m)} km/h<br>Neuschnee heute ${cmv(d.daily.snowfall_sum[0])}<br>Schneehöhe ${cm(d.current.snow_depth)}`;
     }catch(x){const e=el();if(e)e.textContent="Wetter nicht verfügbar"}
   });
 }
 $("#q").addEventListener("input",renderList);
 $("#land").addEventListener("change",renderList);
 
+/* ---- Dialog: Backup (JSON) ---- */
 const dlg=$("#dlg");
 $("#edit").onclick=()=>{$("#json").value=JSON.stringify(areas,null,2);$("#jerr").hidden=true;dlg.showModal();};
 $("#cancel").onclick=()=>dlg.close();
@@ -454,6 +545,7 @@ $("#save").onclick=()=>{
   }catch(e){const p=$("#jerr");p.textContent="Fehler: "+e.message;p.hidden=false;}
 };
 
+/* ---- Dialog: Skigebiet ---- */
 const adlg=$("#adlg");
 let editA=null;
 function openAreaDlg(a){
@@ -505,6 +597,7 @@ $("#a_del").onclick=()=>{
   persist();persistFavs();adlg.close();renderLands();showOverview();
 };
 
+/* ---- Dialog: Position auf der Karte wählen ---- */
 const pdlg=$("#pdlg");let pmap=null,pmark=null,pcb=null,ppt=null;
 function pickPos(start,fallback,cb,z=13){
   if(typeof L==="undefined"){alert("Die Kartenbibliothek konnte nicht geladen werden. Internetverbindung prüfen.");return}
@@ -537,6 +630,82 @@ $("#c_pick").onclick=()=>{
     if(!$("#c_elev").value)fetch(`https://api.open-meteo.com/v1/elevation?latitude=${p[0]}&longitude=${p[1]}`).then(r=>r.json()).then(d=>{if(d.elevation&&!$("#c_elev").value)$("#c_elev").value=Math.round(d.elevation[0])}).catch(()=>{});
   });
 };
+/* Umgebungssuche: Webcams aus OpenStreetMap (Spiegel mit CORS als Fallback) */
+$("#c_find").onclick=async()=>{
+  const r=$("#c_res");
+  if(!cur||!isFinite(cur.lat)||!isFinite(cur.lon)){r.textContent="Kein Gebietszentrum vorhanden.";return}
+  r.textContent="Suche Webcams im Umkreis von 15 km …";
+  const q=`[out:json][timeout:25];(nwr["information"="webcam"](around:15000,${cur.lat},${cur.lon});node["man_made"="surveillance"]["surveillance:type"="webcam"](around:15000,${cur.lat},${cur.lon});way["man_made"="surveillance"]["surveillance:type"="webcam"](around:15000,${cur.lat},${cur.lon}););out center 40;`;
+  const eps=["https://overpass-api.de/api/interpreter","https://maps.mail.ru/osm/tools/overpass/api/interpreter"];
+  let d=null,err="";
+  for(let i=0;i<eps.length;i++){
+    r.textContent="Suche Webcams im Umkreis von 15 km …"+(i?" (Spiegelversuch)":"");
+    try{
+      const res=await fetch(eps[i],{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:"data="+encodeURIComponent(q),signal:AbortSignal.timeout(12000)});
+      if(res.ok){d=await res.json();break}
+      err="HTTP "+res.status;
+    }catch(e){err=e.name==="TimeoutError"||e.name==="AbortError"?"keine Antwort (12 s)":""+e}
+    if(i===0)r.textContent="Erster Dienst antwortet nicht – probiere Spiegel …";
+  }
+  try{
+    if(!d)throw new Error(err||"kein Dienst erreichbar");
+    const els=(d.elements||[]).map(e=>{const t=e.tags||{};const lat=e.lat==null?e.center&&e.center.lat:e.lat,lon=e.lon==null?e.center&&e.center.lon:e.lon;
+      const url=[t.url,t.website,t["contact:website"],t.image].find(u=>typeof u==="string"&&/^https?:\/\//.test(u))||"";
+      const dist=lat==null?9e9:Math.hypot((lat-cur.lat)*111.3,(lon-cur.lon)*111.3*Math.cos(cur.lat*Math.PI/180));
+      return {name:t.name||t.operator||"Webcam",url,lat,lon,ele:t.ele!=null&&isFinite(+t.ele)?Math.round(+t.ele):null,dist}});
+    const list=els.filter(x=>x.lat!=null).sort((a,b)=>a.dist-b.dist).slice(0,25);
+    /* Windy-Webcams dazu, falls webcamsKey in SKIVIEW_CONFIG eingetragen ist (api.windy.com) */
+    const wk=String(CONFIG.webcamsKey||"").trim();
+    if(wk){
+      try{
+        const wr=await fetch(`https://api.windy.com/webcams/api/v3/webcams?nearby=${cur.lat},${cur.lon},15&limit=20&lang=de`,{headers:{"x-windy-api-key":wk},signal:AbortSignal.timeout(12000)});
+        if(wr.ok){const wd=await wr.json();(wd.webcams||[]).forEach(x=>{const la=x.location&&x.location.latitude,lo=x.location&&x.location.longitude;list.push({name:"[Windy] "+(x.title||"Webcam"),url:"https://www.windy.com/webcams/"+x.webcamId,lat:la,lon:lo,ele:null,dist:la!=null?Math.hypot((la-cur.lat)*111.3,(lo-cur.lon)*111.3*Math.cos(cur.lat*Math.PI/180)):9e9})});list.sort((a,b)=>a.dist-b.dist)}
+      }catch(e){}
+    }
+    r._d=list;
+    r.innerHTML=list.length?`<b>${list.length} Webcam(s) gefunden:</b>`+list.map((x,i)=>`<button type="button" data-c="${i}" style="display:block;width:100%;text-align:left;margin-bottom:4px">${esc(x.name)}${x.dist!=null&&x.dist<9e8?" · "+(x.dist<1?Math.round(x.dist*1000)+" m":x.dist.toFixed(1)+" km"):""}${x.url?"":" · ohne Adresse"}</button>`).join(""):"Keine Webcams in OpenStreetMap gefunden. Umkreis nutzen oder Adresse von Hand eintragen.";
+  }catch(e){r.textContent="Suche gerade nicht möglich. Internetverbindung prüfen oder später erneut versuchen."}
+};
+$("#c_res").onclick=e=>{
+  const b=e.target.closest("[data-c]");if(!b)return;const r=$("#c_res"),x=r._d[+b.dataset.c];
+  if(!$("#c_title").value)$("#c_title").value=x.name;
+  if(x.url&&!$("#c_url").value)$("#c_url").value=x.url;
+  if(x.lat!=null){$("#c_lat").value=+x.lat.toFixed(5);$("#c_lon").value=+x.lon.toFixed(5)}
+  if(!$("#c_prov").value&&/foto-webcam/i.test(x.url))$("#c_prov").value="foto-webcam.eu";
+  if(!$("#c_prov").value&&/windy\.com/i.test(x.url))$("#c_prov").value="Windy";
+  if(x.ele&&!$("#c_elev").value)$("#c_elev").value=x.ele;
+  else if(x.lat!=null&&!$("#c_elev").value)fetch(`https://api.open-meteo.com/v1/elevation?latitude=${x.lat}&longitude=${x.lon}`).then(r=>r.json()).then(d=>{if(d.elevation&&!$("#c_elev").value)$("#c_elev").value=Math.round(d.elevation[0])}).catch(()=>{});
+  r.textContent=`„${x.name}“ übernommen – Titel und Position prüfen, dann Speichern.`;
+};
+$("#c_bf_go").onclick=async()=>{
+  const r=$("#c_res"),u=$("#c_bf").value.trim();
+  if(!/^https?:\/\/[^\s]*bergfex\.[a-z.]+\/[^\s]*\/webcams\//i.test(u))return void(r.textContent="Bitte die Bergfex-Seite mit der Webcam-Liste des Gebiets einfügen (Adresse enthält /webcams/c…).");
+  if(ro())return void(r.textContent="Im Lesemodus kann nichts hinzugefügt werden.");
+  r.textContent="Bergfex-Gebiet wird geladen …";
+  const wrap=[x=>"https://api.allorigins.win/raw?url="+encodeURIComponent(x),x=>"https://api.codetabs.com/v1/proxy?quest="+encodeURIComponent(x),x=>"https://test.cors.workers.dev/?"+x,x=>"https://api.cors.lol/?url="+encodeURIComponent(x)];
+  let txt=null,raw=null;
+  for(const f of wrap){try{const res=await fetch(f(u),{signal:AbortSignal.timeout(12000)});if(!res.ok)continue;const t=await res.text();raw=t;if(/images\.bergfex\.[a-z.]+\/webcams\/\?id=\d+/.test(t)){txt=t;break}}catch(e){}}
+  const L=txt?parseBergfex(txt):[];
+  r._bf=L;
+  const sl=(txt||raw)?bfSubLinks(txt||raw):[];
+  r.innerHTML=L.length?`<b>${L.length} Bergfex-Webcams im Gebiet:</b> <button type="button" class="primary" data-ball="1">Alle übernehmen</button>`+L.map((x,i)=>`<button type="button" data-b="${i}" style="display:block;width:100%;text-align:left;margin-bottom:4px">${esc(x.name)}</button>`).join(""):(sl.length?`Übersichtsseite ohne Kamerabilder erkannt. Diese Unterseiten enthalten die Listen – deren URL ins Feld einfügen und erneut laden: `+sl.map(u=>`<a class="link" href="${esc(u)}" target="_blank" rel="noopener">${esc(u.split("/").filter(Boolean).pop()||u)}</a>`).join(" · "):"Laden fehlgeschlagen – Bergfex blockt die Proxy-Dienste gerade. Alternativen: Umgebungssuche nutzen und Treffer einzeln übernehmen, oder später erneut versuchen.");
+};
+$("#c_res").addEventListener("click",e=>{
+  const b=e.target.closest("[data-b],[data-ball]");if(!b)return;
+  const r=$("#c_res"),L=r._bf||[];
+  if(b.hasAttribute("data-ball")){
+    if(ro()||!L.length)return;
+    cur.webcams=cur.webcams||[];
+    L.forEach(x=>cur.webcams.push({title:x.name,id:newId("c"),u:Date.now(),provider:"Bergfex",url:x.url}));
+    persist();cdlg.close();showCams();
+  }else{
+    const x=L[+b.dataset.b];if(!x)return;
+    if(!$("#c_title").value)$("#c_title").value=x.name;
+    $("#c_url").value=x.url;
+    if(!$("#c_prov").value)$("#c_prov").value="Bergfex";
+    r.textContent=`„${x.name}“ übernommen – einzeln speichern oder „Alle übernehmen“ nutzen.`;
+  }
+});
 $("#a_pick").onclick=()=>{
   const la=num("#a_lat"),lo=num("#a_lon");
   pickPos(isFinite(la)&&isFinite(lo)?[la,lo]:null,[47,10.5],p=>{$("#a_lat").value=p[0];$("#a_lon").value=p[1]},5);
@@ -643,6 +812,7 @@ async function sync(){
   }catch(e){setSt("Sync: Fehler, "+(e.message||"unbekannt"))}
   finally{syncing=false;if(again){again=false;schedule()}}
 }
+/* ---- Dialog: Konto ---- */
 const sdlg=$("#sdlg");
 let mode="in",askedName=false,board=[],myId=null;
 const PK="skiview-pending";
@@ -654,6 +824,7 @@ async function getMe(){
   return {role:r&&["admin","editor","viewer"].includes(r.role)?r.role:"none",name:r?r.name:null};
 }
 
+/* ---- Rangliste ---- */
 const RANKS=window.SKIVIEW_RANKS||[];
 const rankOf=(p,n)=>{let r=-1;for(let i=0;i<RANKS.length;i++){if(p>=RANKS[i].p&&n>=(RANKS[i].n||0))r=i;else break}return r};
 
@@ -681,6 +852,7 @@ function setMode(m){
   $("#s_tab_in").setAttribute("aria-selected",!up);$("#s_tab_up").setAttribute("aria-selected",up);
   $("#s_name").style.display=up?"":"none";
   $("#s_ok").textContent=up?"Registrieren":"Anmelden";
+  $("#s_pw").setAttribute("autocomplete",up?"new-password":"current-password");
   $("#s_hint").textContent=up?"Den Einladungscode bekommst du von der Person, die SkiView betreibt. Ohne gültigen Code hat dein Konto keinen Zugriff auf die Daten.":"Den Einladungscode brauchst du nur beim ersten Anmelden eines neuen Kontos.";
   $("#serr").hidden=true;
 }
